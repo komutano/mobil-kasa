@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0f172a">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Mobil Kasa v2.3</title>
+<title>Mobil Kasa v2.3.1</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-tap-highlight-color: transparent; padding-top: env(safe-area-inset-top); }
@@ -112,7 +112,7 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 <button class="nav-btn" id="btnTabUrunler" onclick="sekmeAc('urunler')">Ürünler</button>
 <button class="nav-btn" id="btnTabGunluk" onclick="sekmeAc('gunluk')">Günlük</button>
 <button class="nav-btn" id="btnTabStok" onclick="sekmeAc('stok')">Stok</button>
-<div class="version-badge" onclick="kisiSec(true)" title="Kişiyi değiştir"><span>v2.3</span><span class="kisi" id="lblKisi">—</span></div>
+<div class="version-badge" onclick="kisiSec(true)" title="Kişiyi değiştir"><span>v2.3.1</span><span class="kisi" id="lblKisi">—</span></div>
 </div>
 
 <!-- ================= 1. SATIŞ ================= -->
@@ -243,7 +243,7 @@ A sütunu barkod, C ürün adı, K stok, L satış fiyatı. İlk satır başlık
 <div id="toast" class="toast-msg"></div>
 
 <script>
-const SURUM = 'v2.3';
+const SURUM = 'v2.3.1';
 let STOKLAR = {};
 let SATISLAR = [];          // Günlük sekmesinde görüntülenen günün fişleri
 let SEPET = [];
@@ -327,7 +327,7 @@ function kisiSec(degistir) {
 
 /* ---------- Satış ekranı ---------- */
 document.getElementById('barkodInput').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); barkodManuelEkle(); }
+    if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); barkodManuelEkle(); }
 });
 
 function barkodManuelEkle() {
@@ -820,9 +820,17 @@ ${ws('Silinen Fişler', [50, 45, 50, 80, 75, 85, 80, 400], sil)}
 
 /* ---------- Ürünler (fiyat sorgu) ---------- */
 const arama = document.getElementById('aramaKutusu');
+// iPhone'da programla seçim her zaman çalışmıyor; bu yüzden okutmadan (Enter) sonra
+// gelen ilk karakterde kutuyu kendimiz temizliyoruz.
+let aramaYeniOkutma = false;
 arama.addEventListener('input', stokAra);
 arama.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); stokAra(); tumunuSec(this); }
+    if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); stokAra(); aramaYeniOkutma = true; tumunuSec(this); return; }
+    if (aramaYeniOkutma && e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey) { this.value = ''; aramaYeniOkutma = false; }
+    else if (e.key === 'Backspace' || e.key === 'Delete') aramaYeniOkutma = false;
+});
+arama.addEventListener('beforeinput', function (e) {
+    if (aramaYeniOkutma && e.inputType && e.inputType.startsWith('insert')) { this.value = ''; aramaYeniOkutma = false; }
 });
 arama.addEventListener('focus', function () { tumunuSec(this); });
 arama.addEventListener('mouseup', function (e) { e.preventDefault(); });
