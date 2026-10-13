@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kasa">
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Mobil Kasa v2.3</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-tap-highlight-color: transparent; padding-top: env(safe-area-inset-top); }
+/* Üst Menü */
+.nav-bar { display: flex; background: #ffffff; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+.nav-btn { flex: 1; padding: 13px 0; text-align: center; font-weight: 700; font-size: 14px; color: #64748b; border: none; background: transparent; cursor: pointer; border-bottom: 3px solid transparent; }
+.nav-btn.active { color: #0f172a; border-bottom: 3px solid #0f172a; }
+.version-badge { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 8px; font-size: 10px; font-weight: 800; color: #10b981; background: #f1f5f9; border-left: 1px solid #e2e8f0; cursor: pointer; line-height: 1.2; }
+.version-badge .kisi { color: #0f172a; font-size: 11px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab-content { display: none; padding: 12px; }
+.tab-content.active { display: block; }
+/* Giriş Kutusu */
+.barcode-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.barcode-input { flex: 1; padding: 13px 14px; border: 2px solid #0f172a; border-radius: 10px; font-size: 16px; font-weight: 700; outline: none; background: #ffffff; min-width: 0; }
+.barcode-add-btn { background: #0f172a; color: #ffffff; border: none; border-radius: 10px; padding: 0 20px; font-size: 16px; font-weight: 700; cursor: pointer; }
+/* Banner */
+.banner { display: none; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: 700; font-size: 13px; justify-content: space-between; align-items: center; gap: 8px; }
+.banner button { border: none; padding: 5px 9px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; }
+.banner-edit { background: #fef3c7; color: #92400e; }
+.banner-edit button { background: #b45309; }
+.banner-iade { background: #fee2e2; color: #991b1b; }
+.banner-iade button { background: #b91c1c; }
+/* Sepet Kartları */
+.cart-box { border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; margin-bottom: 12px; overflow: hidden; }
+.cart-box.iade { border: 2px solid #dc2626; }
+.cart-item { padding: 12px; border-bottom: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 6px; }
+.cart-item:last-child { border-bottom: none; }
+.item-title { font-weight: 800; font-size: 15px; text-transform: uppercase; color: #0f172a; }
+.item-sub { display: flex; gap: 8px; align-items: center; font-size: 13px; color: #64748b; font-family: monospace; flex-wrap: wrap; }
+.stock-badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.stock-ok { background: #e2e8f0; color: #334155; }
+.stock-danger { background: #991b1b; color: #ffffff; }
+.item-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.qty-group { display: flex; align-items: center; gap: 8px; }
+.btn-qty { width: 44px; height: 44px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 8px; font-size: 22px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.qty-text { font-size: 18px; font-weight: 800; min-width: 24px; text-align: center; }
+.item-price { font-size: 19px; font-weight: 800; color: #0f172a; text-align: right; cursor: pointer; }
+.item-price small { display: block; font-size: 11px; font-weight: 600; color: #64748b; }
+.item-price s { color: #94a3b8; font-weight: 600; font-size: 12px; }
+.cart-footer-info { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; font-size: 13px; color: #64748b; }
+.btn-clear-cart { background: #e2e8f0; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+/* Toplam */
+.total-wrapper { margin-top: 10px; margin-bottom: 12px; background: #ffffff; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; }
+.total-label { font-size: 13px; font-weight: 700; color: #64748b; }
+.total-amount { font-size: 38px; font-weight: 900; color: #0f172a; line-height: 1.1; }
+.payment-progress-box { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 13px; display: flex; flex-direction: column; gap: 3px; }
+/* Butonlar */
+.pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.btn-pay-cash { background: #15803d; color: #ffffff; border: none; border-radius: 12px; padding: 18px 10px; font-size: 20px; font-weight: 800; text-align: center; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(21, 128, 61, 0.3); }
+.btn-pay-card { background: #1d4ed8; color: #ffffff; border: none; border-radius: 12px; padding: 18px 10px; font-size: 20px; font-weight: 800; text-align: center; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(29, 78, 216, 0.3); }
+.btn-pay-cash:active, .btn-pay-card:active { opacity: 0.85; transform: scale(0.98); }
+.btn-doviz { width: 100%; background: #0f766e; color: #ffffff; border: none; border-radius: 12px; padding: 16px 10px; font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 10px; cursor: pointer; }
+.discount-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.btn-discount { background: #1e293b; color: #ffffff; border: none; border-radius: 10px; padding: 14px 10px; font-size: 16px; font-weight: 700; text-align: center; cursor: pointer; }
+.btn-close-account { width: 100%; background: #0f172a; color: #ffffff; border: none; border-radius: 12px; padding: 18px 10px; font-size: 22px; font-weight: 900; text-align: center; cursor: pointer; }
+.btn-close-account.iade { background: #b91c1c; }
+.btn-iade { width: 100%; margin-top: 10px; background: transparent; color: #b91c1c; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 9px 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+/* Rapor */
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; overflow: hidden; margin-bottom: 15px; }
+.report-cell { padding: 12px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; }
+.report-cell:nth-child(2n) { border-right: none; }
+.cell-label { font-size: 12px; color: #64748b; font-weight: 700; }
+.cell-value { font-size: 20px; font-weight: 900; color: #1e3a8a; margin-top: 3px; font-family: monospace; }
+.report-table-box { background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; overflow-x: auto; margin-bottom: 16px; }
+.report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.report-table th { background: #0f172a; color: #ffffff; padding: 10px 8px; text-align: left; font-weight: 700; font-size: 12px; }
+.report-table td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; }
+.row-zero-stock { background-color: #fce7f3 !important; color: #9d174d !important; font-weight: 700; }
+.row-negative-stock { background-color: #ffe4e6 !important; color: #9f1239 !important; font-weight: 800; }
+.past-note { display: none; background: #e0e7ff; color: #3730a3; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+/* Fiş kartları */
+.fis { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; }
+.fis.iade { border-left: 5px solid #dc2626; }
+.fis.iptal { opacity: 0.55; background: #f1f5f9; }
+.fis.iptal .fis-body { text-decoration: line-through; }
+.rozet { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px; }
+.rz-edit { background: #fef3c7; color: #b45309; }
+.rz-iade { background: #fee2e2; color: #b91c1c; }
+.rz-iptal { background: #334155; color: #fff; }
+.fis-btn { border: none; padding: 7px 11px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; color: #fff; }
+/* Ürünler */
+.urun-buyuk { background: #0f172a; color: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.urun-buyuk .ad { font-size: 16px; font-weight: 800; text-transform: uppercase; }
+.urun-buyuk .fiyat { font-size: 40px; font-weight: 900; margin-top: 6px; }
+.urun-buyuk .alt { font-size: 13px; color: #cbd5e1; font-family: monospace; margin-top: 4px; }
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 500; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); }
+.modal-overlay.open { display: flex; }
+.modal-box { background: #ffffff; width: 100%; max-width: 420px; border-radius: 16px; padding: 20px; }
+.currency-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.btn-curr-choice { padding: 12px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 16px; font-weight: 800; background: #f8fafc; cursor: pointer; }
+.btn-curr-choice.selected { border-color: #0f766e; background: #ccfbf1; color: #0f766e; }
+.toast-msg { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 12px 22px; border-radius: 20px; font-size: 14px; font-weight: 700; z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+<button class="nav-btn active" id="btnTabSatis" onclick="sekmeAc('satis')">Satış</button>
+<button class="nav-btn" id="btnTabUrunler" onclick="sekmeAc('urunler')">Ürünler</button>
+<button class="nav-btn" id="btnTabGunluk" onclick="sekmeAc('gunluk')">Günlük</button>
+<button class="nav-btn" id="btnTabStok" onclick="sekmeAc('stok')">Stok</button>
+<div class="version-badge" onclick="kisiSec(true)" title="Kişiyi değiştir"><span>v2.3</span><span class="kisi" id="lblKisi">—</span></div>
+</div>
+
+<!-- ================= 1. SATIŞ ================= -->
+<div id="tabSatis" class="tab-content active">
+<div id="duzenlemeBanner" class="banner banner-edit">
+<span id="duzenlemeMetin">⚠️ Eski bir fişi düzenliyorsunuz.</span>
+<button onclick="sepetiBosalt()">Vazgeç</button>
+</div>
+<div id="iadeBanner" class="banner banner-iade">
+<span>↩ İADE MODU — okutulan ürünler iade alınır, stoğa geri girer.</span>
+<button onclick="sepetiBosalt()">Çık</button>
+</div>
+<div class="barcode-row">
+<input type="text" id="barkodInput" class="barcode-input" placeholder="Barkod veya tutar yazın..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+<button class="barcode-add-btn" onclick="barkodManuelEkle()">Ekle</button>
+</div>
+<div class="cart-box" id="cartBox">
+<div id="sepetKonteyner"></div>
+</div>
+<div class="cart-footer-info">
+<span id="txtKalemUrun">0 kalem, 0 ürün</span>
+<button class="btn-clear-cart" onclick="sepetiBosaltSor()">Sepeti boşalt</button>
+</div>
+<div class="total-wrapper">
+<div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+<span class="total-label" id="lblToplamBaslik">Ödenecek Tutar</span>
+<span class="total-amount" id="txtGenelToplam">0,00 ₺</span>
+</div>
+<div id="txtIndirimBilgi" style="display:none; color:#dc2626; font-size:13px; font-weight:800; margin-top:3px;"></div>
+<div class="payment-progress-box">
+<div style="display:flex; justify-content:space-between;"><span id="lblNakitBaslik">Alınan Nakit:</span> <b id="lblAlinanNakit" style="color:#15803d;">0,00 ₺</b></div>
+<div style="display:flex; justify-content:space-between;"><span id="lblKartBaslik">Alınan Kredi Kartı:</span> <b id="lblAlinanKart" style="color:#1d4ed8;">0,00 ₺</b></div>
+<div id="satirDoviz" style="display:none; justify-content:space-between;"><span>Döviz ile:</span> <b id="lblAlinanDoviz" style="color:#0f766e;"></b></div>
+<div style="display:flex; justify-content:space-between; margin-top:3px; padding-top:3px; border-top:1px solid #e2e8f0;">
+<span style="font-weight:700;">Kalan:</span> <b id="lblKalanTutar" style="font-weight:900; color:#b91c1c; font-size:16px;">0,00 ₺</b>
+</div>
+</div>
+</div>
+<div class="pay-grid">
+<button class="btn-pay-cash" id="btnNakit" onclick="tahsilatEkle('NAKIT')">💵 Nakit</button>
+<button class="btn-pay-card" id="btnKart" onclick="tahsilatEkle('KART')">💳 Kredi kartı</button>
+</div>
+<div id="satisEkButonlar">
+<button class="btn-doviz" onclick="dovizModalAc()">💱 Döviz (USD / EUR) + %3</button>
+<div class="discount-grid">
+<button class="btn-discount" onclick="indirimUygula('TL')">İndirim TL</button>
+<button class="btn-discount" onclick="indirimUygula('YUZDE')">İndirim %</button>
+</div>
+</div>
+<button class="btn-close-account" id="btnHesapKapat" onclick="hesapKapat()">✓ HESAP KAPAT</button>
+<button class="btn-iade" id="btnIade" onclick="iadeModuAc()">↩ İade al</button>
+</div>
+
+<!-- ================= 2. ÜRÜNLER ================= -->
+<div id="tabUrunler" class="tab-content">
+<input type="text" id="aramaKutusu" placeholder="Barkod okutun veya ürün adı yazın..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+style="width:100%; padding:14px; border:2px solid #0f172a; border-radius:10px; font-size:16px; font-weight:600; margin-bottom:12px; outline:none;">
+<div id="stokAramaSonuc" style="display:flex; flex-direction:column; gap:8px;"></div>
+</div>
+
+<!-- ================= 3. GÜNLÜK ================= -->
+<div id="tabGunluk" class="tab-content">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:6px; flex-wrap:wrap;">
+<input type="date" id="seciliTarih" onchange="tarihDegisti()" style="padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; font-size:14px;">
+<button onclick="gunSonuExceliIndir()" style="background:#166534; color:#fff; border:none; padding:10px 12px; border-radius:6px; font-size:13px; font-weight:800; cursor:pointer;">⬇ Gün Sonu Excel</button>
+</div>
+<div id="gecmisNot" class="past-note">Geçmiş gün — sadece görüntüleme. Fiş düzeltme ve silme yalnızca bugünün fişlerinde yapılabilir.</div>
+<div class="report-grid">
+<div class="report-cell"><div class="cell-label">Nakit Kasa</div><div class="cell-value" id="kasaNakit">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Kart Kasa</div><div class="cell-value" id="kasaKart">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Toplam Tahsilat (net)</div><div class="cell-value" id="kasaToplam">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Toplam İndirim</div><div class="cell-value" id="kasaIndirim">0,00</div></div>
+<div class="report-cell"><div class="cell-label">İadeler</div><div class="cell-value" id="kasaIade" style="color:#b91c1c;">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Fiş / İptal</div><div class="cell-value" id="kasaFisSayi">0 / 0</div></div>
+</div>
+<div id="dovizOzet" style="display:none; background:#ccfbf1; color:#0f766e; padding:10px; border-radius:8px; font-size:13px; font-weight:800; margin-bottom:12px;"></div>
+<div style="font-weight:800; font-size:15px; margin:15px 0 6px 0;">🧾 Fişler</div>
+<div id="satisFisleriListesi" style="display:flex; flex-direction:column; gap:8px;"></div>
+<div style="font-weight:800; font-size:15px; margin:20px 0 6px 0;">📦 Ürün bazında</div>
+<div class="report-table-box">
+<table class="report-table">
+<thead><tr><th>Barkod</th><th>Ürün Adı</th><th style="text-align:center;">Adet</th><th style="text-align:right;">Tutar</th><th style="text-align:right;">Kalan</th></tr></thead>
+<tbody id="tblUrunBazliSatis"></tbody>
+</table>
+</div>
+<button onclick="gunuTemizle()" style="margin-top:20px; background:transparent; color:#dc2626; border:1px solid #fca5a5; padding:8px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">Bu günün kayıtlarını tamamen sil</button>
+</div>
+
+<!-- ================= 4. STOK YÜKLEME ================= -->
+<div id="tabStok" class="tab-content">
+<div style="background:#fff; padding:15px; border-radius:10px; border:1px solid #cbd5e1; margin-bottom:15px;">
+<div style="font-size:15px; font-weight:800; margin-bottom:6px;">Stok listesi yükle (.xlsx)</div>
+<p style="font-size:12px; color:#64748b; margin-bottom:12px;">
+A sütunu barkod, C ürün adı, K stok, L satış fiyatı. İlk satır başlık sayılır. Yeni liste eskisinin yerine geçer; satış kayıtları silinmez.
+</p>
+<input type="file" id="dosyaSecici" accept=".xlsx" onchange="dosyaSecildi(event)" style="font-size:14px; width:100%;">
+<div id="yuklemeMesaj" style="font-size:13px; font-weight:700; margin-top:10px; color:#2563eb;"></div>
+</div>
+<div id="stokBilgi" style="font-size:13px; color:#475569; padding:0 4px;"></div>
+</div>
+
+<!-- DÖVİZ MODAL -->
+<div id="dovizModal" class="modal-overlay">
+<div class="modal-box">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+<span style="font-size:18px; font-weight:900;">Döviz Tahsilatı (%3 Komisyon)</span>
+<button onclick="dovizModalKapat()" style="border:none; background:transparent; font-size:22px; font-weight:bold; cursor:pointer;">✕</button>
+</div>
+<div class="currency-selector">
+<button id="btnSecUSD" class="btn-curr-choice selected" onclick="paraBirimiSec('USD')">💵 Dolar (USD)</button>
+<button id="btnSecEUR" class="btn-curr-choice" onclick="paraBirimiSec('EUR')">💶 Euro (EUR)</button>
+</div>
+<div style="margin-bottom:12px; text-align:right;">
+<a id="linkTrading" href="https://tr.tradingview.com/symbols/USDTRY/" target="_blank" style="font-size:12px; font-weight:700; color:#0284c7; text-decoration:underline;">↗ TradingView canlı kur</a>
+</div>
+<div style="margin-bottom:12px;">
+<label style="font-size:12px; font-weight:700; color:#64748b;">Döviz Kuru (TL):</label>
+<input type="text" inputmode="decimal" id="inputKurDegeri" placeholder="Örn: 41,50" oninput="dovizHesapla()" style="width:100%; padding:10px; border:2px solid #cbd5e1; border-radius:8px; font-size:18px; font-weight:800; margin-top:4px;">
+</div>
+<div style="background:#f1f5f9; padding:12px; border-radius:10px; margin-bottom:15px;">
+<div style="display:flex; justify-content:space-between; font-size:13px; color:#475569; margin-bottom:4px;"><span>Kalan Tutar (TL):</span><span id="modalSepetTL" style="font-weight:700;">0,00 ₺</span></div>
+<div style="display:flex; justify-content:space-between; font-size:13px; color:#0f766e; margin-bottom:4px;"><span>+ %3 Komisyon:</span><span id="modalKomisyonTL" style="font-weight:700;">0,00 ₺</span></div>
+<div style="border-top:1px solid #cbd5e1; padding-top:6px; display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:14px; font-weight:800;">Alınacak Döviz:</span><span id="modalAlinacakDoviz" style="font-size:24px; font-weight:900; color:#0f766e; font-family:monospace;">0.00 $</span></div>
+</div>
+<button onclick="dovizliTahsilatOnayla()" style="width:100%; background:#0f766e; color:#fff; border:none; padding:16px; border-radius:12px; font-size:18px; font-weight:800; cursor:pointer;">Döviz Tahsilatını Ekle</button>
+</div>
+</div>
+<div id="toast" class="toast-msg"></div>
+
+<script>
+const SURUM = 'v2.3';
+let STOKLAR = {};
+let SATISLAR = [];          // Günlük sekmesinde görüntülenen günün fişleri
+let SEPET = [];
+let UYGULANAN_INDIRIM = 0;
+let ALINAN_NAKIT = 0;
+let ALINAN_KART = 0;
+let ALINAN_DOVIZ = [];      // [{cins, kur, miktar, tl, komisyon}]
+let DUZENLENEN_SATIS_ID = null;
+let IADE_MODU = false;
+let AKTIF_DOVIZ = 'USD';
+let KISI = '';
+
+/* ---------- Yardımcılar ---------- */
+const pad2 = n => String(n).padStart(2, '0');
+// İş günü: gece 04:00'e kadar yapılan işlemler bir önceki güne yazılır (yerel saat).
+function isGunu(d) {
+    const x = new Date((d || new Date()).getTime() - 4 * 3600 * 1000);
+    return x.getFullYear() + '-' + pad2(x.getMonth() + 1) + '-' + pad2(x.getDate());
+}
+const TR_AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+function tarihTR(iso) { const [y,m,d] = iso.split('-'); return `${d}.${m}.${y}`; }
+function tarihUzun(iso) { const [y,m,d] = iso.split('-'); return `${parseInt(d)} ${TR_AYLAR[parseInt(m)-1]} ${y}`; }
+const para = n => (Number(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const yuvarla = n => Math.round((Number(n) || 0) * 100) / 100;
+const sayiOku = s => parseFloat(String(s || '').trim().replace(/\./g, (m, i, str) => str.includes(',') ? '' : '.').replace(',', '.'));
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+function normBarkod(b) {
+    b = String(b ?? '').trim();
+    if (/^\d+$/.test(b) && b.length < 13) b = b.padStart(13, '0');
+    return b;
+}
+function bul(barkod) {
+    const ham = String(barkod).trim();
+    return STOKLAR[ham] || STOKLAR[normBarkod(ham)] || null;
+}
+function toast(msg, ms) {
+    const t = document.getElementById('toast');
+    t.innerText = msg; t.style.display = 'block';
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = 'none', ms || 1600);
+}
+function lsGet(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+function lsSet(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+    catch (e) { alert('KAYIT HATASI: Telefon hafızasına yazılamadı! Gün sonu Excel\'ini hemen alın.\n' + e.message); return false; }
+}
+function gunOku(t) {
+    const arr = lsGet('pos_satislar_' + t, []);
+    arr.forEach((s, i) => { if (!s.tarih) s.tarih = t; if (!s.tur) s.tur = 'SATIS'; });
+    arr.sort((a, b) => a.id - b.id);
+    arr.forEach((s, i) => { if (s.no == null) s.no = i + 1; });
+    return arr;
+}
+const gunYaz = (t, arr) => lsSet('pos_satislar_' + t, arr);
+const isaret = s => s.tur === 'IADE' ? -1 : 1;
+function stokKaydet() { lsSet('pos_stok_data', STOKLAR); }
+
+/* ---------- Başlangıç ---------- */
+window.onload = function () {
+    STOKLAR = lsGet('pos_stok_data', {});
+    KISI = lsGet('pos_kisi', '');
+    document.getElementById('lblKisi').innerText = KISI || 'kişi seç';
+    document.getElementById('seciliTarih').value = isGunu();
+    tarihDegisti();
+    sepetiCiz();
+    stokAra();
+    stokBilgiGoster();
+    if (!KISI) setTimeout(() => kisiSec(false), 300);
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+};
+
+function kisiSec(degistir) {
+    const g = prompt(degistir ? 'Kasayı kim kullanıyor? (adınızı yazın)' : 'Hoş geldiniz! Bu telefonda kasayı kim kullanıyor? (adınızı yazın)', KISI || '');
+    if (g !== null && g.trim()) {
+        KISI = g.trim();
+        lsSet('pos_kisi', KISI);
+        document.getElementById('lblKisi').innerText = KISI;
+    }
+}
+
+/* ---------- Satış ekranı ---------- */
+document.getElementById('barkodInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); barkodManuelEkle(); }
+});
+
+function barkodManuelEkle() {
+    const inp = document.getElementById('barkodInput');
+    const val = inp.value.trim();
+    if (!val) return;
+    sepeteEkle(val);
+    inp.value = '';
+    inp.focus();
+}
+
+function sepeteEkle(barkod) {
+    const u = bul(barkod);
+    let kayit;
+    if (u) {
+        kayit = { barkod: u.barkod, ad: u.ad, fiyat: u.fiyat, listeFiyat: u.fiyat, stok: u.stok };
+    } else {
+        const b = normBarkod(barkod);
+        const f = prompt(`Barkod listede yok: ${b}\nSatış fiyatını yazın (boş bırakırsanız eklenmez):`, '');
+        if (f === null || !(sayiOku(f) > 0)) return;
+        const ad = prompt('Ürün adı (isteğe bağlı):', '') || '';
+        kayit = { barkod: b, ad: 'KAYITSIZ ' + (ad.trim() || b), fiyat: sayiOku(f), listeFiyat: 0, stok: 0, kayitsiz: true };
+    }
+    const varOlan = SEPET.find(x => x.barkod === kayit.barkod);
+    if (varOlan) varOlan.adet += 1;
+    else SEPET.push({ ...kayit, adet: 1 });
+    odemeleriSifirla();
+    sepetiCiz();
+}
+
+function odemeleriSifirla() {
+    // Sepet değişince önceki kısmi tahsilatlar geçersiz olur
+    if (ALINAN_NAKIT || ALINAN_KART || ALINAN_DOVIZ.length) {
+        ALINAN_NAKIT = 0; ALINAN_KART = 0; ALINAN_DOVIZ = [];
+        toast('Sepet değişti, tahsilatlar sıfırlandı');
+    }
+}
+
+function sepetAdetDegis(idx, miktar) {
+    SEPET[idx].adet += miktar;
+    if (SEPET[idx].adet <= 0) SEPET.splice(idx, 1);
+    if (UYGULANAN_INDIRIM > getSepetBrut()) UYGULANAN_INDIRIM = getSepetBrut();
+    odemeleriSifirla();
+    sepetiCiz();
+}
+
+function fiyatDegistir(idx) {
+    const it = SEPET[idx];
+    const g = prompt(`${it.ad}\nBirim fiyat (₺):`, String(it.fiyat).replace('.', ','));
+    if (g === null) return;
+    const f = sayiOku(g);
+    if (isNaN(f) || f < 0) return alert('Geçerli bir fiyat girin.');
+    it.fiyat = yuvarla(f);
+    odemeleriSifirla();
+    sepetiCiz();
+}
+
+function sepetiBosalt() {
+    SEPET = []; UYGULANAN_INDIRIM = 0; ALINAN_NAKIT = 0; ALINAN_KART = 0; ALINAN_DOVIZ = [];
+    DUZENLENEN_SATIS_ID = null; IADE_MODU = false;
+    sepetiCiz();
+}
+function sepetiBosaltSor() {
+    if (SEPET.length && !confirm('Sepet boşaltılsın mı?')) return;
+    sepetiBosalt();
+}
+
+function iadeModuAc() {
+    if (IADE_MODU) return;
+    if (SEPET.length && !confirm('Sepetteki ürünler silinip iade moduna geçilsin mi?')) return;
+    sepetiBosalt();
+    IADE_MODU = true;
+    sepetiCiz();
+    document.getElementById('barkodInput').focus();
+}
+
+const getSepetBrut = () => yuvarla(SEPET.reduce((a, x) => a + x.adet * x.fiyat, 0));
+const getSepetNet = () => yuvarla(Math.max(0, getSepetBrut() - UYGULANAN_INDIRIM));
+const getDovizTL = () => yuvarla(ALINAN_DOVIZ.reduce((a, d) => a + d.tl, 0));
+const getKalanTutar = () => yuvarla(Math.max(0, getSepetNet() - (ALINAN_NAKIT + ALINAN_KART)));
+
+function sepetiCiz() {
+    const box = document.getElementById('sepetKonteyner');
+    document.getElementById('iadeBanner').style.display = IADE_MODU ? 'flex' : 'none';
+    document.getElementById('duzenlemeBanner').style.display = DUZENLENEN_SATIS_ID ? 'flex' : 'none';
+    document.getElementById('cartBox').classList.toggle('iade', IADE_MODU);
+    document.getElementById('satisEkButonlar').style.display = IADE_MODU ? 'none' : 'block';
+    document.getElementById('btnIade').style.display = (IADE_MODU || DUZENLENEN_SATIS_ID) ? 'none' : 'block';
+    const hk = document.getElementById('btnHesapKapat');
+    hk.classList.toggle('iade', IADE_MODU);
+    hk.innerText = IADE_MODU ? '✓ İADEYİ KAYDET' : (DUZENLENEN_SATIS_ID ? '✓ DÜZELTMEYİ KAYDET' : '✓ HESAP KAPAT');
+    document.getElementById('lblToplamBaslik').innerText = IADE_MODU ? 'İade Edilecek' : 'Ödenecek Tutar';
+    document.getElementById('btnNakit').innerText = IADE_MODU ? '💵 Nakit iade' : '💵 Nakit';
+    document.getElementById('btnKart').innerText = IADE_MODU ? '💳 Karta iade' : '💳 Kredi kartı';
+    document.getElementById('lblNakitBaslik').innerText = IADE_MODU ? 'Nakit iade:' : 'Alınan Nakit:';
+    document.getElementById('lblKartBaslik').innerText = IADE_MODU ? 'Karta iade:' : 'Alınan Kredi Kartı:';
+
+    const indirimDiv = document.getElementById('txtIndirimBilgi');
+    if (SEPET.length === 0) {
+        box.innerHTML = `<div style="padding:25px; text-align:center; color:#94a3b8; font-size:14px;">${IADE_MODU ? 'İade alınacak ürünlerin barkodunu okutun.' : 'Sepet boş. Barkod okutun veya Ürünler sekmesinden arayın.'}</div>`;
+        document.getElementById('txtKalemUrun').innerText = '0 kalem, 0 ürün';
+        document.getElementById('txtGenelToplam').innerText = '0,00 ₺';
+        indirimDiv.style.display = 'none';
+        tahsilatGorunumGuncelle();
+        return;
+    }
+    let toplamAdet = 0, html = '';
+    SEPET.forEach((item, idx) => {
+        toplamAdet += item.adet;
+        const kalan = IADE_MODU ? item.stok + item.adet : item.stok - item.adet;
+        const rozet = kalan < 0 ? 'stock-badge stock-danger' : 'stock-badge stock-ok';
+        const degisti = !item.kayitsiz && Math.abs(item.fiyat - item.listeFiyat) > 0.001;
+        html += `<div class="cart-item">
+<div class="item-title">${esc(item.ad)}</div>
+<div class="item-sub"><span>${esc(item.barkod)}</span>${item.kayitsiz ? '<span class="stock-badge stock-danger">listede yok</span>' : `<span class="${rozet}">stokta kalan ${kalan}</span>`}</div>
+<div class="item-controls">
+<div class="qty-group"><button class="btn-qty" onclick="sepetAdetDegis(${idx}, -1)">-</button><span class="qty-text">${item.adet}</span><button class="btn-qty" onclick="sepetAdetDegis(${idx}, 1)">+</button></div>
+<div class="item-price" onclick="fiyatDegistir(${idx})">${para(item.adet * item.fiyat)} ₺<small>${degisti ? `<s>${para(item.listeFiyat)}</s> ` : ''}${item.adet} × ${para(item.fiyat)} · fiyatı değiştir</small></div>
+</div></div>`;
+    });
+    box.innerHTML = html;
+    document.getElementById('txtKalemUrun').innerText = `${SEPET.length} kalem, ${toplamAdet} ürün`;
+    document.getElementById('txtGenelToplam').innerText = para(getSepetNet()) + ' ₺';
+    if (UYGULANAN_INDIRIM > 0) {
+        indirimDiv.style.display = 'block';
+        indirimDiv.innerText = `- ${para(UYGULANAN_INDIRIM)} ₺ indirim uygulandı (brüt ${para(getSepetBrut())} ₺)`;
+    } else indirimDiv.style.display = 'none';
+    tahsilatGorunumGuncelle();
+}
+
+function tahsilatGorunumGuncelle() {
+    document.getElementById('lblAlinanNakit').innerText = para(ALINAN_NAKIT) + ' ₺';
+    document.getElementById('lblAlinanKart').innerText = para(ALINAN_KART) + ' ₺';
+    document.getElementById('lblKalanTutar').innerText = para(getKalanTutar()) + ' ₺';
+    const sd = document.getElementById('satirDoviz');
+    if (ALINAN_DOVIZ.length) {
+        sd.style.display = 'flex';
+        document.getElementById('lblAlinanDoviz').innerText = ALINAN_DOVIZ.map(d => `${d.miktar.toFixed(2)} ${d.cins} (=${para(d.tl)} ₺ nakite dahil)`).join(', ');
+    } else sd.style.display = 'none';
+}
+
+function tahsilatEkle(tur) {
+    if (SEPET.length === 0) return alert('Sepet boş!');
+    const kalan = getKalanTutar();
+    if (kalan <= 0) return alert('Tutarın tamamı zaten girildi. Kaydetmek için alttaki büyük butona basın.');
+    const input = document.getElementById('barkodInput');
+    const girilen = sayiOku(input.value);
+    let eklenecek = kalan;
+    if (!isNaN(girilen) && girilen > 0) { eklenecek = Math.min(girilen, kalan); input.value = ''; }
+    if (tur === 'NAKIT') ALINAN_NAKIT = yuvarla(ALINAN_NAKIT + eklenecek);
+    else ALINAN_KART = yuvarla(ALINAN_KART + eklenecek);
+    tahsilatGorunumGuncelle();
+    input.focus();
+}
+
+function indirimUygula(tip) {
+    if (SEPET.length === 0) return alert('Sepette ürün yok!');
+    const brut = getSepetBrut();
+    const input = document.getElementById('barkodInput');
+    let sayi = sayiOku(input.value);
+    if (!isNaN(sayi) && sayi > 0) input.value = '';
+    else {
+        const g = prompt(tip === 'TL' ? 'İndirim TL girin (0 = indirimi kaldır):' : 'İndirim % girin (0 = indirimi kaldır):', tip === 'TL' ? '50' : '10');
+        if (g === null) return;
+        sayi = sayiOku(g) || 0;
+    }
+    UYGULANAN_INDIRIM = yuvarla(tip === 'TL' ? sayi : brut * sayi / 100);
+    if (UYGULANAN_INDIRIM > brut) UYGULANAN_INDIRIM = brut;
+    ALINAN_NAKIT = 0; ALINAN_KART = 0; ALINAN_DOVIZ = [];
+    sepetiCiz();
+}
+
+function yeniFisNo(arr) { return arr.reduce((m, s) => Math.max(m, s.no || 0), 0) + 1; }
+
+function hesapKapat() {
+    if (SEPET.length === 0) return alert('Sepette ürün yok!');
+    if (!KISI) { kisiSec(false); if (!KISI) return; }
+    const kalan = getKalanTutar();
+    if (kalan > 0.009) return alert(`Kalan ${para(kalan)} ₺ henüz girilmedi!\nNakit veya Kredi kartı butonuna basın.`);
+
+    const bugun = isGunu();
+    const gunler = lsGet('pos_satislar_' + bugun, null) ? gunOku(bugun) : [];
+    const simdi = new Date();
+    const saat = pad2(simdi.getHours()) + ':' + pad2(simdi.getMinutes());
+    let eski = null, eskiIdx = -1;
+
+    if (DUZENLENEN_SATIS_ID) {
+        eskiIdx = gunler.findIndex(s => s.id === DUZENLENEN_SATIS_ID);
+        if (eskiIdx === -1) { alert('Düzeltilen fiş bugünün kayıtlarında bulunamadı. İşlem iptal edildi.'); return; }
+        eski = gunler[eskiIdx];
+        // Eski fişin stok etkisini geri al
+        eski.kalemler.forEach(k => { const u = STOKLAR[k.barkod]; if (u) u.stok += isaret(eski) * k.adet; });
+    }
+
+    const fis = {
+        id: eski ? eski.id : simdi.getTime(),
+        no: eski ? eski.no : yeniFisNo(gunler),
+        tarih: bugun,
+        saat: eski ? eski.saat : saat,
+        tur: IADE_MODU ? 'IADE' : 'SATIS',
+        kisi: eski ? eski.kisi : KISI,
+        duzenlendi: !!eski,
+        duzenleyen: eski ? KISI : undefined,
+        duzenlemeSaat: eski ? saat : undefined,
+        brut: getSepetBrut(),
+        indirim: UYGULANAN_INDIRIM,
+        net: getSepetNet(),
+        nakit: ALINAN_NAKIT,
+        kart: ALINAN_KART,
+        doviz: ALINAN_DOVIZ.slice(),
+        kalemler: SEPET.map(x => ({ barkod: x.barkod, ad: x.ad, adet: x.adet, fiyat: x.fiyat, listeFiyat: x.listeFiyat, kayitsiz: !!x.kayitsiz }))
+    };
+    // Yeni stok etkisi: satış düşer, iade artar
+    fis.kalemler.forEach(k => { const u = STOKLAR[k.barkod]; if (u) u.stok -= isaret(fis) * k.adet; });
+
+    if (eski) gunler[eskiIdx] = fis; else gunler.push(fis);
+    if (!gunYaz(bugun, gunler)) return;
+    stokKaydet();
+
+    toast(fis.tur === 'IADE' ? `✓ İade kaydedildi (Fiş ${fis.no})` : (eski ? `✓ Fiş ${fis.no} düzeltildi` : `✓ Satış kaydedildi (Fiş ${fis.no})`));
+    sepetiBosalt();
+    if (document.getElementById('seciliTarih').value === bugun) tarihDegisti();
+    document.getElementById('barkodInput').focus();
+}
+
+/* ---------- Fiş düzelt / sil ---------- */
+function satisiSepeteAktar(id) {
+    const s = SATISLAR.find(x => x.id === id);
+    if (!s || s.iptal) return;
+    if (s.tarih !== isGunu()) return alert('Geçmiş günlerin fişleri değiştirilemez.');
+    if (SEPET.length && !confirm('Sepetteki mevcut işlem silinecek ve seçilen fiş yüklenecek. Devam?')) return;
+    SEPET = s.kalemler.map(k => {
+        const u = STOKLAR[k.barkod];
+        return { ...k, listeFiyat: k.listeFiyat ?? k.fiyat, stok: u ? u.stok + isaret(s) * k.adet : 0 };
+    });
+    UYGULANAN_INDIRIM = s.indirim || 0;
+    ALINAN_NAKIT = s.nakit || 0;
+    ALINAN_KART = s.kart || 0;
+    ALINAN_DOVIZ = (s.doviz || []).slice();
+    IADE_MODU = s.tur === 'IADE';
+    DUZENLENEN_SATIS_ID = s.id;
+    document.getElementById('duzenlemeMetin').innerText = `⚠️ Fiş ${s.no} (${s.saat}) düzeltiliyor.`;
+    sekmeAc('satis');
+    sepetiCiz();
+}
+
+function satisiSil(id) {
+    const bugun = isGunu();
+    const gunler = gunOku(bugun);
+    const s = gunler.find(x => x.id === id);
+    if (!s || s.iptal) return;
+    if (!confirm(`Fiş ${s.no} (${s.saat}, ${para(s.net)} ₺) silinsin mi?\nÜrünler stoğa geri döner. Fiş listede "SİLİNDİ" olarak görünmeye devam eder.`)) return;
+    s.kalemler.forEach(k => { const u = STOKLAR[k.barkod]; if (u) u.stok += isaret(s) * k.adet; });
+    s.iptal = true;
+    s.iptalEden = KISI;
+    const d = new Date(); s.iptalSaat = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    if (!gunYaz(bugun, gunler)) return;
+    stokKaydet();
+    if (DUZENLENEN_SATIS_ID === id) sepetiBosalt();
+    tarihDegisti();
+    toast(`Fiş ${s.no} silindi`);
+}
+
+/* ---------- Döviz ---------- */
+function dovizModalAc() {
+    if (SEPET.length === 0) return alert('Sepette ürün yok!');
+    if (getKalanTutar() <= 0) return alert('Kalan tutar yok!');
+    document.getElementById('modalSepetTL').innerText = para(getKalanTutar()) + ' ₺';
+    dovizHesapla();
+    document.getElementById('dovizModal').classList.add('open');
+    document.getElementById('inputKurDegeri').focus();
+}
+function dovizModalKapat() { document.getElementById('dovizModal').classList.remove('open'); }
+function paraBirimiSec(tur) {
+    AKTIF_DOVIZ = tur;
+    document.getElementById('btnSecUSD').className = 'btn-curr-choice' + (tur === 'USD' ? ' selected' : '');
+    document.getElementById('btnSecEUR').className = 'btn-curr-choice' + (tur === 'EUR' ? ' selected' : '');
+    document.getElementById('linkTrading').href = `https://tr.tradingview.com/symbols/${tur}TRY/`;
+    dovizHesapla();
+}
+function dovizHesapla() {
+    const kalan = getKalanTutar();
+    const kur = sayiOku(document.getElementById('inputKurDegeri').value) || 0;
+    const kom = kalan * 0.03;
+    const sembol = AKTIF_DOVIZ === 'USD' ? '$' : '€';
+    document.getElementById('modalKomisyonTL').innerText = para(kom) + ' ₺';
+    document.getElementById('modalAlinacakDoviz').innerText = (kur > 0 ? ((kalan + kom) / kur).toFixed(2) : '0.00') + ' ' + sembol;
+}
+function dovizliTahsilatOnayla() {
+    const kur = sayiOku(document.getElementById('inputKurDegeri').value) || 0;
+    if (kur <= 0) return alert('Geçerli bir kur girin!');
+    const kalan = getKalanTutar();
+    const kom = yuvarla(kalan * 0.03);
+    ALINAN_DOVIZ.push({ cins: AKTIF_DOVIZ, kur: kur, miktar: yuvarla((kalan + kom) / kur), tl: kalan, komisyon: kom });
+    ALINAN_NAKIT = yuvarla(ALINAN_NAKIT + kalan);  // satış TL kapanır; döviz ayrıca kaydedilir
+    dovizModalKapat();
+    sepetiCiz();
+}
+
+/* ---------- Günlük ---------- */
+function tarihDegisti() {
+    const secilen = document.getElementById('seciliTarih').value || isGunu();
+    SATISLAR = gunOku(secilen);
+    raporGuncelle();
+}
+
+function gunHesapla(liste) {
+    const r = { nakit: 0, kart: 0, indirim: 0, iade: 0, fis: 0, iptal: 0, doviz: {}, urunler: {} };
+    liste.forEach(s => {
+        if (s.iptal) { r.iptal++; return; }
+        r.fis++;
+        const z = isaret(s);
+        r.nakit += z * (s.nakit || 0);
+        r.kart += z * (s.kart || 0);
+        if (z > 0) r.indirim += s.indirim || 0; else r.iade += s.net || 0;
+        (s.doviz || []).forEach(d => {
+            r.doviz[d.cins] = r.doviz[d.cins] || { miktar: 0, tl: 0, komisyon: 0 };
+            r.doviz[d.cins].miktar += d.miktar; r.doviz[d.cins].tl += d.tl; r.doviz[d.cins].komisyon += d.komisyon;
+        });
+        s.kalemler.forEach(k => {
+            const u = r.urunler[k.barkod] || (r.urunler[k.barkod] = { barkod: k.barkod, ad: k.ad, adet: 0, tutar: 0 });
+            u.adet += z * k.adet; u.tutar += z * k.adet * k.fiyat;
+        });
+    });
+    Object.values(r.urunler).forEach(u => { u.kalanStok = STOKLAR[u.barkod] ? STOKLAR[u.barkod].stok : null; });
+    return r;
+}
+
+function raporGuncelle() {
+    const secilen = document.getElementById('seciliTarih').value || isGunu();
+    const bugunMu = secilen === isGunu();
+    document.getElementById('gecmisNot').style.display = bugunMu ? 'none' : 'block';
+    const r = gunHesapla(SATISLAR);
+    document.getElementById('kasaNakit').innerText = para(r.nakit);
+    document.getElementById('kasaKart').innerText = para(r.kart);
+    document.getElementById('kasaToplam').innerText = para(r.nakit + r.kart);
+    document.getElementById('kasaIndirim').innerText = para(r.indirim);
+    document.getElementById('kasaIade').innerText = para(r.iade);
+    document.getElementById('kasaFisSayi').innerText = `${r.fis} / ${r.iptal}`;
+    const dz = document.getElementById('dovizOzet');
+    const dk = Object.keys(r.doviz);
+    if (dk.length) {
+        dz.style.display = 'block';
+        dz.innerText = '💱 Kasadaki döviz: ' + dk.map(c => `${r.doviz[c].miktar.toFixed(2)} ${c} (karşılığı ${para(r.doviz[c].tl)} ₺ nakit kasaya dahil)`).join(' · ');
+    } else dz.style.display = 'none';
+
+    const tbody = document.getElementById('tblUrunBazliSatis');
+    const ul = Object.values(r.urunler);
+    if (!ul.length) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">Henüz satış yok.</td></tr>';
+    else tbody.innerHTML = ul.map(u => {
+        const cls = u.kalanStok === 0 ? 'row-zero-stock' : (u.kalanStok < 0 ? 'row-negative-stock' : '');
+        return `<tr class="${cls}"><td style="font-family:monospace; font-size:11px;">${esc(u.barkod)}</td><td style="font-weight:700;">${esc(u.ad)}</td><td style="text-align:center; font-weight:800;">${u.adet}</td><td style="text-align:right;">${para(u.tutar)}</td><td style="text-align:right; font-weight:900;">${u.kalanStok ?? '-'}</td></tr>`;
+    }).join('');
+
+    const div = document.getElementById('satisFisleriListesi');
+    if (!SATISLAR.length) { div.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8; background:#fff; border-radius:8px;">Bu gün için kayıtlı fiş yok.</div>'; return; }
+    div.innerHTML = SATISLAR.slice().reverse().map(s => {
+        const z = isaret(s);
+        const rozetler = (s.tur === 'IADE' ? '<span class="rozet rz-iade">İADE</span>' : '')
+            + (s.duzenlendi ? '<span class="rozet rz-edit">DÜZELTİLDİ</span>' : '')
+            + (s.iptal ? `<span class="rozet rz-iptal">SİLİNDİ ${esc(s.iptalSaat || '')}</span>` : '');
+        const kalemler = s.kalemler.map(k => `${k.adet}× ${esc(k.ad)} (${para(k.fiyat)})`).join(', ');
+        const doviz = (s.doviz || []).map(d => ` | ${d.miktar.toFixed(2)} ${d.cins} @${d.kur}`).join('');
+        const butonlar = (bugunMu && !s.iptal) ? `<div style="display:flex; gap:6px;">
+<button class="fis-btn" style="background:#0f172a;" onclick="satisiSepeteAktar(${s.id})">⇄ Düzelt</button>
+<button class="fis-btn" style="background:#dc2626;" onclick="satisiSil(${s.id})">🗑 Sil</button></div>` : '';
+        return `<div class="fis ${s.tur === 'IADE' ? 'iade' : ''} ${s.iptal ? 'iptal' : ''}">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:6px;">
+<div><span style="font-weight:900; font-size:14px;">Fiş ${s.no}</span> <span style="font-weight:700; font-size:13px; color:#475569;">${esc(s.saat)}</span>${s.kisi ? ` <span style="font-size:11px; color:#64748b;">· ${esc(s.kisi)}</span>` : ''}${rozetler}</div>
+${butonlar}</div>
+<div class="fis-body">
+<div style="font-size:12px; color:#64748b; margin-bottom:6px;">${kalemler}</div>
+<div style="display:flex; justify-content:space-between; font-size:12px; border-top:1px dashed #e2e8f0; padding-top:6px; gap:6px; flex-wrap:wrap;">
+<span>Nakit: <b>${para(z * s.nakit)}</b> | Kart: <b>${para(z * s.kart)}</b>${s.indirim ? ` | İnd: <b>${para(s.indirim)}</b>` : ''}${doviz}</span>
+<span style="font-weight:900; color:${z < 0 ? '#b91c1c' : '#1e3a8a'}; font-size:14px;">${para(z * s.net)} ₺</span>
+</div></div></div>`;
+    }).join('');
+}
+
+function gunuTemizle() {
+    const secilen = document.getElementById('seciliTarih').value || isGunu();
+    const g = prompt(`${tarihTR(secilen)} tarihli TÜM kayıtlar kalıcı olarak silinecek (stok geri alınmaz).\nEmin misiniz? Onay için SIL yazın:`, '');
+    if (g === null || g.trim().toUpperCase() !== 'SIL') return;
+    try { localStorage.removeItem('pos_satislar_' + secilen); } catch (e) {}
+    tarihDegisti();
+}
+
+/* ---------- Gün Sonu Excel (çok sayfalı .xls) ---------- */
+function gunSonuExceliIndir() {
+    const t = document.getElementById('seciliTarih').value || isGunu();
+    const liste = gunOku(t);
+    if (!liste.length) return alert('Bu gün için kayıt yok!');
+    const r = gunHesapla(liste);
+    const aktif = liste.filter(s => !s.iptal);
+    const silinen = liste.filter(s => s.iptal);
+    const x = v => esc(v);
+    const S = (v, st) => `<Cell${st ? ` ss:StyleID="${st}"` : ''}><Data ss:Type="String">${x(v)}</Data></Cell>`;
+    const N = (v, st) => `<Cell ss:StyleID="${st || 'Num'}"><Data ss:Type="Number">${yuvarla(v)}</Data></Cell>`;
+    const I = (v, st) => `<Cell ss:StyleID="${st || 'Int'}"><Data ss:Type="Number">${v}</Data></Cell>`;
+    const E = () => '<Cell/>';
+    const row = (cells, st) => `<Row${st ? ` ss:StyleID="${st}"` : ''}>${cells.join('')}</Row>`;
+    const cols = ws => ws.map(w => `<Column ss:Width="${w}"/>`).join('');
+    const dovizMetni = s => (s.doviz || []).map(d => `${d.miktar.toFixed(2)} ${d.cins} @ ${d.kur}`).join(' + ');
+    const turAd = s => s.tur === 'IADE' ? 'İADE' : 'SATIŞ';
+
+    // 1) Özet
+    let ozet = row([S('Mobil Kasa gün sonu', 'Baslik')]) + row([S('Tarih'), S(tarihUzun(t))]) + row([S('Cihaz kullanıcısı'), S(KISI)]) + row([S('Çıktı alındı'), S(new Date().toLocaleString('tr-TR'))]) + row([S('Sürüm'), S(SURUM)]) + row([]);
+    ozet += row([S('Nakit (net)', 'Bold'), N(r.nakit)]) + row([S('Kredi kartı (net)', 'Bold'), N(r.kart)]) + row([S('Toplam tahsilat', 'Bold'), N(r.nakit + r.kart, 'NumBold')]);
+    ozet += row([S('Toplam indirim'), N(r.indirim)]) + row([S('Toplam iade'), N(r.iade)]) + row([S('Fiş sayısı'), I(r.fis)]) + row([S('Silinen fiş'), I(silinen.length)]);
+    Object.keys(r.doviz).forEach(c => { ozet += row([S(`Alınan döviz ${c}`), N(r.doviz[c].miktar), S(`TL karşılığı ${para(r.doviz[c].tl)} (nakite dahil), komisyon ${para(r.doviz[c].komisyon)}`)]); });
+
+    // 2) Fişler (her fiş bir satır)
+    let fisler = row(['Fiş No','Saat','Tür','Satan','Kalem','Adet','Brüt','İndirim','Net','Nakit','Kart','Döviz','Not'].map(h => S(h, 'Header')));
+    aktif.forEach(s => {
+        const z = isaret(s), st = z < 0 ? 'Iade' : null;
+        const adet = s.kalemler.reduce((a, k) => a + k.adet, 0);
+        const not = s.duzenlendi ? `Düzeltildi ${s.duzenlemeSaat || ''} ${s.duzenleyen || ''}`.trim() : '';
+        fisler += row([I(s.no), S(s.saat), S(turAd(s), st), S(s.kisi || ''), I(s.kalemler.length), I(z * adet), N(z * s.brut, st ? 'NumIade' : null), N(s.indirim || 0), N(z * s.net, st ? 'NumIade' : 'NumBold'), N(z * s.nakit), N(z * s.kart), S(dovizMetni(s)), S(not)]);
+    });
+    fisler += row([S('TOPLAM','Bold'),E(),E(),E(),E(),E(),E(),N(r.indirim,'NumBold'),N(r.nakit + r.kart,'NumBold'),N(r.nakit,'NumBold'),N(r.kart,'NumBold')]);
+
+    // 3) Fiş Detayı (fiş fiş gruplu)
+    let detay = row(['Fiş No','Saat','Tür','Barkod','Ürün Adı','Adet','Birim Fiyat','Tutar','Liste Fiyatı'].map(h => S(h, 'Header')));
+    aktif.forEach(s => {
+        const z = isaret(s), iade = z < 0;
+        const odeme = [`Nakit ${para(z * s.nakit)}`, `Kart ${para(z * s.kart)}`];
+        if (s.indirim) odeme.push(`İndirim ${para(s.indirim)}`);
+        if (s.doviz && s.doviz.length) odeme.push(`Döviz ${dovizMetni(s)}`);
+        if (s.kisi) odeme.push(s.kisi);
+        const gst = iade ? 'GrupIade' : 'Grup';
+        detay += row([I(s.no, gst), S(s.saat, gst), S(turAd(s), gst), S('', gst), S(odeme.join(' · '), gst), S('', gst), S('', gst), N(z * s.net, iade ? 'GrupIadeNum' : 'GrupNum'), S('', gst)]);
+        s.kalemler.forEach(k => {
+            const lf = k.listeFiyat != null && Math.abs(k.listeFiyat - k.fiyat) > 0.001 ? N(k.listeFiyat) : E();
+            detay += row([I(s.no, 'Soluk'), E(), E(), S(k.barkod, 'Mono'), S(k.ad + (k.kayitsiz ? ' (listede yok)' : '')), I(z * k.adet), N(k.fiyat), N(z * k.adet * k.fiyat), lf]);
+        });
+        if (s.indirim) detay += row([I(s.no, 'Soluk'), E(), E(), E(), S('Fiş indirimi', 'Ital'), E(), E(), N(-s.indirim), E()]);
+        detay += row([]);
+    });
+
+    // 4) Ürün bazlı
+    let urun = row(['Barkod','Ürün Adı','Net Adet','Tutar (indirim öncesi)','Kalan Stok','Durum'].map(h => S(h, 'Header')));
+    Object.values(r.urunler).forEach(u => {
+        let st = null, durum = '';
+        if (u.kalanStok === 0) { st = 'Sifir'; durum = 'Sıfırlandı'; }
+        else if (u.kalanStok < 0) { st = 'Eksi'; durum = 'Eksiye düştü'; }
+        urun += row([S(u.barkod), S(u.ad), I(u.adet), N(u.tutar), u.kalanStok == null ? S('listede yok') : I(u.kalanStok), S(durum)], st);
+    });
+
+    // 5) Silinen fişler
+    let sil = row(['Fiş No','Saat','Tür','Satan','Net','Silinme saati','Silen','Ürünler'].map(h => S(h, 'Header')));
+    silinen.forEach(s => { sil += row([I(s.no), S(s.saat), S(turAd(s)), S(s.kisi || ''), N(isaret(s) * s.net), S(s.iptalSaat || ''), S(s.iptalEden || ''), S(s.kalemler.map(k => `${k.adet}× ${k.ad}`).join(', '))]); });
+
+    const ws = (ad, colW, body) => `<Worksheet ss:Name="${ad}"><Table>${cols(colW)}${body}</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane></WorksheetOptions></Worksheet>`;
+    const xml = `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Styles>
+<Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Bottom"/><Font ss:FontName="Calibri" ss:Size="11"/></Style>
+<Style ss:ID="Header"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/><Interior ss:Color="#0F172A" ss:Pattern="Solid"/></Style>
+<Style ss:ID="Baslik"><Font ss:FontName="Calibri" ss:Size="14" ss:Bold="1"/></Style>
+<Style ss:ID="Bold"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/></Style>
+<Style ss:ID="Ital"><Font ss:FontName="Calibri" ss:Size="11" ss:Italic="1" ss:Color="#B91C1C"/></Style>
+<Style ss:ID="Mono"><Font ss:FontName="Consolas" ss:Size="10"/></Style>
+<Style ss:ID="Soluk"><Font ss:FontName="Calibri" ss:Size="10" ss:Color="#94A3B8"/></Style>
+<Style ss:ID="Num"><NumberFormat ss:Format="#,##0.00"/></Style>
+<Style ss:ID="NumBold"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><NumberFormat ss:Format="#,##0.00"/></Style>
+<Style ss:ID="Int"><NumberFormat ss:Format="0"/></Style>
+<Style ss:ID="Iade"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#B91C1C" ss:Bold="1"/></Style>
+<Style ss:ID="NumIade"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#B91C1C" ss:Bold="1"/><NumberFormat ss:Format="#,##0.00"/></Style>
+<Style ss:ID="Grup"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><Interior ss:Color="#E2E8F0" ss:Pattern="Solid"/></Style>
+<Style ss:ID="GrupNum"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><Interior ss:Color="#E2E8F0" ss:Pattern="Solid"/><NumberFormat ss:Format="#,##0.00"/></Style>
+<Style ss:ID="GrupIade"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#991B1B"/><Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/></Style>
+<Style ss:ID="GrupIadeNum"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#991B1B"/><Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/><NumberFormat ss:Format="#,##0.00"/></Style>
+<Style ss:ID="Sifir"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#9D174D" ss:Bold="1"/><Interior ss:Color="#FCE7F3" ss:Pattern="Solid"/></Style>
+<Style ss:ID="Eksi"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#9F1239" ss:Bold="1"/><Interior ss:Color="#FFE4E6" ss:Pattern="Solid"/></Style>
+</Styles>
+${ws('Özet', [170, 120, 380], ozet)}
+${ws('Fişler', [50, 45, 50, 80, 45, 45, 75, 65, 80, 75, 75, 140, 160], fisler)}
+${ws('Fiş Detayı', [50, 45, 50, 105, 320, 45, 75, 80, 75], detay)}
+${ws('Ürün Bazlı', [105, 300, 60, 120, 70, 90], urun)}
+${ws('Silinen Fişler', [50, 45, 50, 80, 75, 85, 80, 400], sil)}
+</Workbook>`;
+    const ad = `Kasa_${tarihTR(t).replace(/\./g, '-')}${KISI ? '_' + KISI.replace(/[^\wçğıöşüÇĞİÖŞÜ]/g, '') : ''}.xls`;
+    const blob = new Blob(['﻿' + xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = ad;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+/* ---------- Ürünler (fiyat sorgu) ---------- */
+const arama = document.getElementById('aramaKutusu');
+arama.addEventListener('input', stokAra);
+arama.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); stokAra(); tumunuSec(this); }
+});
+arama.addEventListener('focus', function () { tumunuSec(this); });
+arama.addEventListener('mouseup', function (e) { e.preventDefault(); });
+function tumunuSec(el) { setTimeout(() => { try { el.setSelectionRange(0, el.value.length); } catch (e) { el.select(); } }, 0); }
+
+function stokAra() {
+    const q = arama.value.toLocaleLowerCase('tr-TR').trim();
+    const dom = document.getElementById('stokAramaSonuc');
+    if (!q) { dom.innerHTML = '<div style="padding:25px; text-align:center; color:#94a3b8; font-size:14px;">Barkod okutun ya da ürün adı yazın. Her okutmada kutu kendiliğinden seçilir, sıradaki barkod eskisinin yerine yazılır.</div>'; return; }
+    let html = '';
+    const tam = bul(arama.value);
+    if (tam) {
+        html += `<div class="urun-buyuk"><div class="ad">${esc(tam.ad)}</div><div class="fiyat">${para(tam.fiyat)} ₺</div><div class="alt">${esc(tam.barkod)} · Stok: ${tam.stok}</div>
+<button onclick="sepeteEkle('${esc(tam.barkod)}'); sekmeAc('satis');" style="margin-top:10px; background:#fff; color:#0f172a; border:none; padding:9px 14px; border-radius:8px; font-weight:800; font-size:13px;">Sepete at</button></div>`;
+    }
+    const sonuclar = [];
+    for (const k in STOKLAR) {
+        const u = STOKLAR[k];
+        if (tam && u === tam) continue;
+        if (u.barkod.includes(q) || u.ad.toLocaleLowerCase('tr-TR').includes(q)) { sonuclar.push(u); if (sonuclar.length >= 30) break; }
+    }
+    if (!tam && !sonuclar.length) html += '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:14px;">Eşleşen ürün bulunamadı.</div>';
+    sonuclar.forEach(u => {
+        const rozet = u.stok < 0 ? 'stock-badge stock-danger' : 'stock-badge stock-ok';
+        html += `<div style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+<div style="flex:1; min-width:0;"><div style="font-weight:800; font-size:14px; text-transform:uppercase;">${esc(u.ad)}</div>
+<div style="font-size:12px; color:#64748b; font-family:monospace; margin-top:3px;">${esc(u.barkod)} | <span class="${rozet}">Stok: ${u.stok}</span></div></div>
+<div style="display:flex; align-items:center; gap:8px;"><span style="font-weight:900; font-size:15px; color:#1e3a8a; white-space:nowrap;">${para(u.fiyat)} ₺</span>
+<button onclick="sepeteEkle('${esc(u.barkod)}'); sekmeAc('satis');" style="background:#0f172a; color:#fff; border:none; padding:8px 10px; border-radius:6px; font-weight:700; font-size:12px;">Sepete</button></div></div>`;
+    });
+    dom.innerHTML = html;
+}
+
+/* ---------- Stok yükleme (.xlsx) ---------- */
+function stokBilgiGoster() {
+    const n = Object.keys(STOKLAR).length;
+    const z = lsGet('pos_stok_zaman', '');
+    document.getElementById('stokBilgi').innerText = n ? `Telefonda ${n} ürün kayıtlı${z ? ' · son yükleme ' + z : ''}.` : 'Telefonda henüz stok listesi yok.';
+}
+
+async function dosyaSecildi(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const msg = document.getElementById('yuklemeMesaj');
+    msg.style.color = '#2563eb'; msg.innerText = 'Excel çözülüyor, lütfen bekleyin...';
+    try {
+        const dosyalar = await zipAc(await file.arrayBuffer(), ['xl/worksheets/sheet1.xml', 'xl/sharedStrings.xml']);
+        const sheet = dosyalar['xl/worksheets/sheet1.xml'];
+        if (!sheet) throw new Error('Excel içinde ilk çalışma sayfası bulunamadı.');
+        const ortak = [];
+        if (dosyalar['xl/sharedStrings.xml']) {
+            const siRe = /<si>([\s\S]*?)<\/si>/g; let m;
+            while ((m = siRe.exec(dosyalar['xl/sharedStrings.xml'])) !== null) {
+                ortak.push(xmlCoz((m[1].match(/<t[^>]*>([\s\S]*?)<\/t>/g) || []).map(t => t.replace(/<[^>]+>/g, '')).join('')));
+            }
+        }
+        const yeni = {}; let sayac = 0, ilk = true;
+        const rowRe = /<row\b[^>]*>([\s\S]*?)<\/row>/g; let rm;
+        while ((rm = rowRe.exec(sheet)) !== null) {
+            if (ilk) { ilk = false; continue; }  // başlık satırı
+            const hucre = {};
+            const cRe = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g; let cm;
+            while ((cm = cRe.exec(rm[1])) !== null) {
+                const ref = (cm[1].match(/\br="([A-Z]+)\d+"/) || [])[1];
+                if (!ref) continue;
+                const tip = (cm[1].match(/\bt="(\w+)"/) || [])[1];
+                const ic = cm[2] || '';
+                let v = '';
+                if (tip === 'inlineStr') v = (ic.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || []).map(t => t.replace(/<[^>]+>/g, '')).join('');
+                else { const vm = ic.match(/<v>([\s\S]*?)<\/v>/); v = vm ? vm[1] : ''; if (tip === 's') v = ortak[parseInt(v)] ?? ''; }
+                hucre[ref] = xmlCoz(v).trim();
+            }
+            if (!hucre.A) continue;
+            const b = normBarkod(hucre.A);
+            yeni[b] = { barkod: b, ad: hucre.C || 'Ürün', stok: Math.round(parseFloat(hucre.K) || 0), fiyat: yuvarla(parseFloat(String(hucre.L || '0').replace(',', '.')) || 0) };
+            sayac++;
+        }
+        if (!sayac) throw new Error('Hiç ürün okunamadı. Sütunları kontrol edin (A barkod, C ad, K stok, L fiyat).');
+        if (Object.keys(STOKLAR).length && !confirm(`${sayac} ürün okundu. Telefondaki mevcut stok listesi bununla değiştirilsin mi?`)) { msg.innerText = 'Vazgeçildi.'; return; }
+        STOKLAR = yeni;
+        if (!lsSet('pos_stok_data', STOKLAR)) throw new Error('Telefon hafızasına yazılamadı.');
+        const d = new Date(); lsSet('pos_stok_zaman', `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`);
+        msg.style.color = '#166534'; msg.innerText = `✓ ${sayac} ürün yüklendi.`;
+        stokBilgiGoster();
+    } catch (err) {
+        msg.style.color = '#dc2626'; msg.innerText = 'Hata: ' + err.message;
+    } finally { e.target.value = ''; }
+}
+
+function xmlCoz(s) {
+    return String(s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+        .replace(/&#(\d+);/g, (m, n) => String.fromCharCode(n)).replace(/&#x([0-9a-f]+);/gi, (m, n) => String.fromCharCode(parseInt(n, 16))).replace(/&amp;/g, '&');
+}
+
+// ZIP'i merkezi dizinden okur (Excel'in tüm kayıt biçimleriyle uyumlu)
+async function zipAc(buf, istenen) {
+    const bytes = new Uint8Array(buf), view = new DataView(buf), sonuc = {};
+    let eocd = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) { if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; } }
+    if (eocd < 0) throw new Error('Dosya geçerli bir .xlsx değil.');
+    const adet = view.getUint16(eocd + 10, true);
+    let p = view.getUint32(eocd + 16, true);
+    for (let n = 0; n < adet; n++) {
+        if (view.getUint32(p, true) !== 0x02014b50) break;
+        const method = view.getUint16(p + 10, true), csize = view.getUint32(p + 20, true);
+        const fnLen = view.getUint16(p + 28, true), exLen = view.getUint16(p + 30, true), cmLen = view.getUint16(p + 32, true);
+        const lho = view.getUint32(p + 42, true);
+        const ad = new TextDecoder().decode(bytes.subarray(p + 46, p + 46 + fnLen));
+        if (istenen.includes(ad)) {
+            const start = lho + 30 + view.getUint16(lho + 26, true) + view.getUint16(lho + 28, true);
+            const raw = bytes.subarray(start, start + csize);
+            if (method === 0) sonuc[ad] = new TextDecoder().decode(raw);
+            else if (method === 8) {
+                const ds = new DecompressionStream('deflate-raw');
+                const w = ds.writable.getWriter(); w.write(raw); w.close();
+                sonuc[ad] = new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());
+            }
+        }
+        p += 46 + fnLen + exLen + cmLen;
+    }
+    return sonuc;
+}
+
+/* ---------- Sekmeler ---------- */
+function sekmeAc(ad) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    const map = { satis: ['tabSatis', 'btnTabSatis'], urunler: ['tabUrunler', 'btnTabUrunler'], gunluk: ['tabGunluk', 'btnTabGunluk'], stok: ['tabStok', 'btnTabStok'] };
+    document.getElementById(map[ad][0]).classList.add('active');
+    document.getElementById(map[ad][1]).classList.add('active');
+    if (ad === 'satis') document.getElementById('barkodInput').focus();
+    else if (ad === 'urunler') { arama.focus(); tumunuSec(arama); }
+    else if (ad === 'gunluk') tarihDegisti();
+    else if (ad === 'stok') stokBilgiGoster();
+}
+</script>
+</body>
+</html>
