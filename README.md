@@ -1,1 +1,133 @@
-# mobil-kasa
+# Mobil Kasa
+
+iPhone ve iPad için hazırlanmış, **internetsiz çalışan** basit bir satış kasası.
+Mağazadaki bilgisayar kullanılamadığında satışları telefondan almak için yapıldı.
+Günün sonunda tüm satışlar fiş fiş Excel'e aktarılır ve ana programa girilir.
+
+**Adres:** https://komutano.github.io/mobil-kasa/
+
+Güncel sürüm: **v2.3.1**
+
+---
+
+## Nasıl çalışır?
+
+Bu site yalnızca programın kendisini (ekranlar ve hesaplama kodu) barındırır.
+Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çalışır:
+
+- Stok listesi (Excel) telefonda okunur ve telefonun hafızasında saklanır. **Hiçbir yere gönderilmez.**
+- Satışlar, iadeler ve fişler yalnızca o telefonda tutulur.
+- Gün sonu Excel'i telefonda oluşturulur.
+- İnternet yokken de çalışır. İnternet varken açılışta programın yeni sürümü varsa kendiliğinden alınır. Bu sırada veriler silinmez.
+
+> Bu depoda stok, fiyat ya da satış bilgisi **yoktur**. Yalnızca program kodu vardır.
+
+---
+
+## Telefona kurulum
+
+1. Yukarıdaki adresi iPhone'da **Safari** ile açın. (Ana ekrana ekleme Safari'den yapılır.)
+2. Alttaki **Paylaş** butonuna (yukarı oklu kare) basın, ardından **Ana Ekrana Ekle → Ekle** seçin.
+3. Ana ekranda çıkan **Kasa** ikonundan açın.
+4. İlk açılışta adınızı sorar. Fişlerde satışı kimin yaptığı bu isimle görünür. Sağ üstteki isme dokunarak değiştirebilirsiniz.
+5. **Stok** sekmesinden stok listesini (.xlsx) yükleyin.
+
+> ⚠️ Programı her zaman **ana ekrandaki ikondan** açın. Safari'den açılan sayfa ayrı bir hafıza kullanır ve aynı satışları görmez.
+
+---
+
+## Stok listesi biçimi (.xlsx)
+
+| Sütun | İçerik |
+|---|---|
+| **A** | Barkod |
+| **C** | Ürün adı |
+| **K** | Stok adedi |
+| **L** | Satış fiyatı |
+
+- İlk satır başlık sayılır ve atlanır.
+- 13 haneden kısa sayısal barkodların başına sıfır eklenerek 13 haneye tamamlanır.
+- Yeni liste yüklendiğinde eski stok listesinin yerine geçer. **Satış kayıtları silinmez.**
+
+---
+
+## Ekranlar
+
+### Satış
+- Barkod okutun (Bluetooth okuyucu ya da klavye ile). Ürün sepete eklenir.
+- Adedi **– / +** ile değiştirin. Fiyata dokunarak birim fiyatı değiştirebilirsiniz.
+- **Nakit** veya **Kredi kartı** ile tahsil edin. Barkod kutusuna bir tutar yazıp butona basarsanız parçalı ödeme yapılır (örneğin 200 nakit, kalanı kart).
+- **Döviz (USD/EUR):** Kur elle girilir, %3 komisyon eklenir. Satış TL olarak kapanır, alınan döviz ayrıca kaydedilir. Para üstü her zaman TL verilir.
+- **İndirim TL / %:** Fişin tamamına uygulanır.
+- Listede olmayan bir barkod okutulursa fiyat ve ad sorulur. Bu ürün Excel'de "listede yok" olarak işaretlenir.
+
+### İade
+- **Hesap Kapat** altındaki **↩ İade al** butonuna basın, iade edilen ürünlerin barkodunu okutun.
+- Para nakit, karta ya da ikisine bölünerek iade edilir. Döviz ile iade yapılmaz.
+- Ürünler stoğa geri girer.
+- **Değişim** için önce iade, sonra normal satış yapın.
+
+### Ürünler (fiyat sorgu)
+- Barkod okutun. Ürünün fiyatı ve stoğu büyük olarak gösterilir.
+- Bir sonraki barkod okutulduğunda eskisinin yerine yazılır, silmeye gerek yoktur.
+- Ürün adıyla da arama yapılabilir.
+
+### Günlük
+- Günün nakit, kart, indirim ve iade toplamları ile fiş listesi.
+- Bugünün fişlerinde **Düzelt** (fişi sepete geri yükler) ve **Sil** (ürünleri stoğa geri koyar, fiş "SİLİNDİ" olarak listede kalır) butonları vardır.
+- **⬇ Gün Sonu Excel** ile günün dökümü indirilir.
+
+---
+
+## Gün devri
+
+Gün **gece 04:00'te** döner. 00:00 ile 03:59 arasında yapılan işlemler bir önceki güne yazılır.
+Saat 04:00'ü geçince önceki günün fişleri **kilitlenir**, yalnızca görüntülenebilir.
+Telefon saatinin otomatik ayarlı olması gerekir.
+
+---
+
+## Gün sonu Excel'i
+
+Her telefondan ayrı bir dosya çıkar (`Kasa_GG-AA-YYYY_İsim.xls`). İçindeki sayfalar:
+
+| Sayfa | İçerik |
+|---|---|
+| **Özet** | Nakit, kart, toplam tahsilat, indirim, iade, fiş sayısı, döviz |
+| **Fişler** | Her fiş bir satır: saat, tür, satan kişi, brüt, indirim, net, nakit, kart, döviz |
+| **Fiş Detayı** | Fiş fiş gruplu: üstte ödeme özeti, altında ürünler |
+| **Ürün Bazlı** | Ürün başına net satış adedi ve kalan stok (sıfıra ya da eksiye düşenler renkli) |
+| **Silinen Fişler** | Silinen fişler, silinme saati ve silen kişi |
+
+İadeler kırmızı ve eksi tutarla gösterilir.
+
+---
+
+## Önemli uyarılar
+
+- **Telefonlar birbirinin verisini görmez.** Her telefonun kendi stok listesi ve kendi satışları vardır. Akşam her telefondan ayrı gün sonu Excel'i alınmalıdır.
+- **Yedek yoktur.** Ana ekrandaki uygulama silinirse ya da Safari verileri temizlenirse o telefondaki satışlar kaybolur. **Gün sonu Excel'ini her akşam alın.**
+- Stok listesi telefonda yalnızca okunur. Ana programdaki stok, gün sonu Excel'i girilene kadar güncellenmez.
+
+---
+
+## Dosyalar
+
+| Dosya | Görevi |
+|---|---|
+| `index.html` | Programın tamamı (ekranlar ve kod) |
+| `sw.js` | İnternetsiz çalışma ve otomatik güncelleme |
+| `manifest.json` | Ana ekran ikonu ve uygulama adı |
+| `icon-*.png` | Uygulama ikonları |
+
+## Güncelleme
+
+Yeni sürüm için `index.html` değiştirilip bu depoya yüklenir. GitHub Pages birkaç dakika içinde yayına alır.
+Telefonlar internete bağlıyken bir sonraki açılışta yeni sürümü kendiliğinden alır.
+Çalışan sürüm sağ üst köşede görünür.
+
+## Sürüm geçmişi
+
+- **v2.3.1:** Fiyat sorguda yeni okutulan barkod eskisinin yerine yazılır (iPhone uyumu). Açılışta her zaman en yeni sürüm yüklenir.
+- **v2.3:** İade, fiş silme ve düzeltme, çok sayfalı gün sonu Excel'i, satan kişi bilgisi, 04:00 gün devri, döviz kaydı, ana ekrana ekleme ve internetsiz çalışma.
+- **v2.2:** İlk mobil sürüm.
