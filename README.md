@@ -36,6 +36,27 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 
 ---
 
+## Barkod okuyucu bağlama
+
+Üç yolla barkod okutulabilir:
+
+| Yol | Nasıl |
+|---|---|
+| **Bluetooth okuyucu** | iPhone/iPad'in Bluetooth ayarlarından eşleştirin. Okuyucu klavye gibi çalışır. |
+| **Kablolu (USB) okuyucu** | Bir **çevirici** ile takın: Lightning girişli cihazlarda *Lightning – USB 3 Kamera Adaptörü*, USB-C girişli cihazlarda *USB-C – USB adaptörü*. Okuyucu yine klavye gibi çalışır, ek ayar gerekmez. |
+| **Kamera** | Barkod kutusunun yanındaki **📷** butonu. Okuyucu gerekmez. |
+
+> ⚠️ **Okuyucu bağlıyken ekran klavyesi açılmaz.** iPhone/iPad, kablolu ya da Bluetooth okuyucuyu gerçek bir klavye sayar ve ekran klavyesini gizler. Tutar, indirim, kur ya da ürün adı yazmanız gerekirse:
+> - Kablolu okuyucuyu çıkarın ya da Bluetooth okuyucuyu kapatın, klavye geri gelir.
+> - iPad'de ekranın altında çıkan küçük çubuktaki klavye simgesiyle ekran klavyesi açılabilir.
+> - Bazı Bluetooth okuyucuların kılavuzunda ekran klavyesini açıp kapatan özel bir barkod ya da tuş vardır.
+>
+> Kamera butonu bundan etkilenmez: okuyucu bağlıyken de 📷 ile kameradan okutulabilir.
+
+> Lightning girişli bazı iPhone'larda kablolu okuyucu takılınca *"Bu aksesuar çok fazla güç gerektiriyor"* uyarısı çıkabilir. Bu durumda şarj girişi olan *USB 3 Kamera Adaptörü* kullanın ve adaptöre şarj kablosu takın.
+
+---
+
 ## Stok listesi biçimi (.xlsx)
 
 | Sütun | İçerik |
