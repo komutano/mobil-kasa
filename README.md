@@ -6,7 +6,7 @@ Günün sonunda tüm satışlar fiş fiş Excel'e aktarılır ve ana programa gi
 
 **Adres:** https://komutano.github.io/mobil-kasa/
 
-Güncel sürüm: **v2.3.1**
+Güncel sürüm: **v2.3.2**
 
 ---
 
@@ -55,9 +55,14 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 
 ### Satış
 - Barkod okutun (Bluetooth okuyucu ya da klavye ile). Ürün sepete eklenir.
+- Okuyucu yoksa barkod kutusunun yanındaki **📷** butonuna basın. Kamera açılır, barkodu görünce kendisi okur ve sepete ekler. 13 haneden kısa barkodların başına sıfır eklenir. (İlk kullanımda kamera izni istenir.)
 - Adedi **– / +** ile değiştirin. Fiyata dokunarak birim fiyatı değiştirebilirsiniz.
 - **Nakit** veya **Kredi kartı** ile tahsil edin. Barkod kutusuna bir tutar yazıp butona basarsanız parçalı ödeme yapılır (örneğin 200 nakit, kalanı kart).
-- **Döviz (USD/EUR):** Kur elle girilir, %3 komisyon eklenir. Satış TL olarak kapanır, alınan döviz ayrıca kaydedilir. Para üstü her zaman TL verilir.
+- **Döviz (USD/EUR):** Kur elle girilir (aynı gün içinde hatırlanır). Müşterinin dövizi **kur ÷ 1,03** ile alınır (%3 komisyon).
+  - *Müşterinin verdiği döviz* kutusuna verilen miktarı yazın (örneğin 100). Program **TL para üstünü** büyük olarak gösterir.
+  - Kutu boş bırakılırsa tam tutar kadar döviz alındığı varsayılır.
+  - Verilen döviz yetmezse kalanı nakit ya da kartla tamamlanır.
+  - Komisyon kârı (alınan döviz × kur − müşteriye sayılan TL) ekranda ve Excel'de ayrıca gösterilir.
 - **İndirim TL / %:** Fişin tamamına uygulanır.
 - Listede olmayan bir barkod okutulursa fiyat ve ad sorulur. Bu ürün Excel'de "listede yok" olarak işaretlenir.
 
@@ -68,12 +73,14 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 - **Değişim** için önce iade, sonra normal satış yapın.
 
 ### Ürünler (fiyat sorgu)
-- Barkod okutun. Ürünün fiyatı ve stoğu büyük olarak gösterilir.
+- Barkod okutun ya da **📷** ile kameradan okutun. Ürünün fiyatı ve stoğu büyük olarak gösterilir.
 - Bir sonraki barkod okutulduğunda eskisinin yerine yazılır, silmeye gerek yoktur.
 - Ürün adıyla da arama yapılabilir.
 
 ### Günlük
-- Günün nakit, kart, indirim ve iade toplamları ile fiş listesi.
+- Günün nakit, kart, dövizle ödenen, indirim, iade ve döviz komisyon kârı toplamları ile fiş listesi.
+- Döviz kutusu: alınan döviz, verilen para üstü, komisyon kârı ve çekmeceye net giren TL ve döviz.
+- Dövizli fişlerin altında döviz satırı görünür (miktar, kur, para üstü, kâr).
 - Bugünün fişlerinde **Düzelt** (fişi sepete geri yükler) ve **Sil** (ürünleri stoğa geri koyar, fiş "SİLİNDİ" olarak listede kalır) butonları vardır.
 - **⬇ Gün Sonu Excel** ile günün dökümü indirilir.
 
@@ -93,10 +100,11 @@ Her telefondan ayrı bir dosya çıkar (`Kasa_GG-AA-YYYY_İsim.xls`). İçindeki
 
 | Sayfa | İçerik |
 |---|---|
-| **Özet** | Nakit, kart, toplam tahsilat, indirim, iade, fiş sayısı, döviz |
-| **Fişler** | Her fiş bir satır: saat, tür, satan kişi, brüt, indirim, net, nakit, kart, döviz |
-| **Fiş Detayı** | Fiş fiş gruplu: üstte ödeme özeti, altında ürünler |
+| **Özet** | Nakit, kart, dövizle ödenen, toplam satış, indirim, iade, döviz komisyon kârı, para üstü, çekmeceye giren TL ve döviz |
+| **Fişler** | Her fiş bir satır: saat, tür, satan kişi, brüt, indirim, net, nakit, kart, döviz (TL), alınan döviz, para üstü, komisyon kârı |
+| **Fiş Detayı** | Fiş fiş gruplu: üstte ödeme özeti, altında ürünler ve varsa döviz satırı |
 | **Ürün Bazlı** | Ürün başına net satış adedi ve kalan stok (sıfıra ya da eksiye düşenler renkli) |
+| **Döviz** | Her döviz işlemi: fiş, ürünler, kur, alış kuru, gereken ve alınan döviz, para üstü, komisyon kârı |
 | **Silinen Fişler** | Silinen fişler, silinme saati ve silen kişi |
 
 İadeler kırmızı ve eksi tutarla gösterilir.
@@ -116,6 +124,7 @@ Her telefondan ayrı bir dosya çıkar (`Kasa_GG-AA-YYYY_İsim.xls`). İçindeki
 | Dosya | Görevi |
 |---|---|
 | `index.html` | Programın tamamı (ekranlar ve kod) |
+| `html5-qrcode.min.js` | Kamera ile barkod okuma kütüphanesi ([html5-qrcode](https://github.com/mebjas/html5-qrcode), Apache 2.0 lisansı: `html5-qrcode.LICENSE`) |
 | `sw.js` | İnternetsiz çalışma ve otomatik güncelleme |
 | `manifest.json` | Ana ekran ikonu ve uygulama adı |
 | `icon-*.png` | Uygulama ikonları |
@@ -128,6 +137,7 @@ Telefonlar internete bağlıyken bir sonraki açılışta yeni sürümü kendili
 
 ## Sürüm geçmişi
 
+- **v2.3.2:** Dövizde müşterinin verdiği miktar girilir ve TL para üstü hesaplanır. Döviz işlemleri ve komisyon kârı fişte, Günlük ekranında ve Excel'de (yeni *Döviz* sayfası) ayrıca gösterilir. Barkod kutusunun yanına kamera ile okuma butonu eklendi.
 - **v2.3.1:** Fiyat sorguda yeni okutulan barkod eskisinin yerine yazılır (iPhone uyumu). Açılışta her zaman en yeni sürüm yüklenir.
 - **v2.3:** İade, fiş silme ve düzeltme, çok sayfalı gün sonu Excel'i, satan kişi bilgisi, 04:00 gün devri, döviz kaydı, ana ekrana ekleme ve internetsiz çalışma.
 - **v2.2:** İlk mobil sürüm.

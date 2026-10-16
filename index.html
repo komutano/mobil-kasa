@@ -10,7 +10,8 @@
 <meta name="theme-color" content="#0f172a">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Mobil Kasa v2.3.1</title>
+<link rel="icon" href="icon-192.png">
+<title>Mobil Kasa v2.3.2</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-tap-highlight-color: transparent; padding-top: env(safe-area-inset-top); }
@@ -25,7 +26,21 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 /* Giriş Kutusu */
 .barcode-row { display: flex; gap: 8px; margin-bottom: 12px; }
 .barcode-input { flex: 1; padding: 13px 14px; border: 2px solid #0f172a; border-radius: 10px; font-size: 16px; font-weight: 700; outline: none; background: #ffffff; min-width: 0; }
-.barcode-add-btn { background: #0f172a; color: #ffffff; border: none; border-radius: 10px; padding: 0 20px; font-size: 16px; font-weight: 700; cursor: pointer; }
+.barcode-add-btn { background: #0f172a; color: #ffffff; border: none; border-radius: 10px; padding: 0 16px; font-size: 24px; font-weight: 700; cursor: pointer; min-width: 60px; }
+/* Kamera ile barkod */
+.kamera-overlay { display: none; position: fixed; inset: 0; background: #000; z-index: 900; flex-direction: column; }
+.kamera-overlay.open { display: flex; }
+.kamera-ust { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top)); color: #fff; font-weight: 800; font-size: 16px; }
+.kamera-ust button { background: #fff; color: #0f172a; border: none; border-radius: 20px; padding: 8px 16px; font-weight: 800; font-size: 14px; }
+#kameraAlan { flex: 1; position: relative; overflow: hidden; }
+#kameraAlan video { width: 100% !important; height: 100% !important; object-fit: cover; }
+.kamera-alt { color: #cbd5e1; text-align: center; padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); font-size: 14px; font-weight: 600; }
+.kamera-alt input { margin-top: 10px; width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 16px; font-weight: 700; text-align: center; }
+/* Döviz kutuları */
+.doviz-satir { margin-top: 6px; background: #ccfbf1; color: #115e59; border-radius: 6px; padding: 6px 8px; font-size: 12px; font-weight: 700; }
+.doviz-satir b { color: #0f766e; }
+.paraustu-buyuk { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; border-radius: 12px; padding: 12px; text-align: center; margin-bottom: 12px; }
+.paraustu-buyuk .tutar { font-size: 34px; font-weight: 900; color: #78350f; line-height: 1.1; }
 /* Banner */
 .banner { display: none; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: 700; font-size: 13px; justify-content: space-between; align-items: center; gap: 8px; }
 .banner button { border: none; padding: 5px 9px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; }
@@ -112,7 +127,7 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 <button class="nav-btn" id="btnTabUrunler" onclick="sekmeAc('urunler')">Ürünler</button>
 <button class="nav-btn" id="btnTabGunluk" onclick="sekmeAc('gunluk')">Günlük</button>
 <button class="nav-btn" id="btnTabStok" onclick="sekmeAc('stok')">Stok</button>
-<div class="version-badge" onclick="kisiSec(true)" title="Kişiyi değiştir"><span>v2.3.1</span><span class="kisi" id="lblKisi">—</span></div>
+<div class="version-badge" onclick="kisiSec(true)" title="Kişiyi değiştir"><span>v2.3.2</span><span class="kisi" id="lblKisi">—</span></div>
 </div>
 
 <!-- ================= 1. SATIŞ ================= -->
@@ -127,7 +142,7 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 </div>
 <div class="barcode-row">
 <input type="text" id="barkodInput" class="barcode-input" placeholder="Barkod veya tutar yazın..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-<button class="barcode-add-btn" onclick="barkodManuelEkle()">Ekle</button>
+<button class="barcode-add-btn" onclick="kameraAc('satis')" aria-label="Kamerayla barkod okut">📷</button>
 </div>
 <div class="cart-box" id="cartBox">
 <div id="sepetKonteyner"></div>
@@ -145,7 +160,7 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 <div class="payment-progress-box">
 <div style="display:flex; justify-content:space-between;"><span id="lblNakitBaslik">Alınan Nakit:</span> <b id="lblAlinanNakit" style="color:#15803d;">0,00 ₺</b></div>
 <div style="display:flex; justify-content:space-between;"><span id="lblKartBaslik">Alınan Kredi Kartı:</span> <b id="lblAlinanKart" style="color:#1d4ed8;">0,00 ₺</b></div>
-<div id="satirDoviz" style="display:none; justify-content:space-between;"><span>Döviz ile:</span> <b id="lblAlinanDoviz" style="color:#0f766e;"></b></div>
+<div id="satirDoviz" style="display:none; flex-direction:column; gap:3px;"></div>
 <div style="display:flex; justify-content:space-between; margin-top:3px; padding-top:3px; border-top:1px solid #e2e8f0;">
 <span style="font-weight:700;">Kalan:</span> <b id="lblKalanTutar" style="font-weight:900; color:#b91c1c; font-size:16px;">0,00 ₺</b>
 </div>
@@ -168,8 +183,11 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 
 <!-- ================= 2. ÜRÜNLER ================= -->
 <div id="tabUrunler" class="tab-content">
+<div class="barcode-row">
 <input type="text" id="aramaKutusu" placeholder="Barkod okutun veya ürün adı yazın..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-style="width:100%; padding:14px; border:2px solid #0f172a; border-radius:10px; font-size:16px; font-weight:600; margin-bottom:12px; outline:none;">
+style="flex:1; min-width:0; padding:14px; border:2px solid #0f172a; border-radius:10px; font-size:16px; font-weight:600; outline:none;">
+<button class="barcode-add-btn" onclick="kameraAc('urunler')" aria-label="Kamerayla barkod okut">📷</button>
+</div>
 <div id="stokAramaSonuc" style="display:flex; flex-direction:column; gap:8px;"></div>
 </div>
 
@@ -181,12 +199,14 @@ style="width:100%; padding:14px; border:2px solid #0f172a; border-radius:10px; f
 </div>
 <div id="gecmisNot" class="past-note">Geçmiş gün — sadece görüntüleme. Fiş düzeltme ve silme yalnızca bugünün fişlerinde yapılabilir.</div>
 <div class="report-grid">
-<div class="report-cell"><div class="cell-label">Nakit Kasa</div><div class="cell-value" id="kasaNakit">0,00</div></div>
-<div class="report-cell"><div class="cell-label">Kart Kasa</div><div class="cell-value" id="kasaKart">0,00</div></div>
-<div class="report-cell"><div class="cell-label">Toplam Tahsilat (net)</div><div class="cell-value" id="kasaToplam">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Nakit (TL)</div><div class="cell-value" id="kasaNakit">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Kart</div><div class="cell-value" id="kasaKart">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Dövizle ödenen (TL)</div><div class="cell-value" id="kasaDovizTL" style="color:#0f766e;">0,00</div></div>
+<div class="report-cell"><div class="cell-label">Toplam satış (net)</div><div class="cell-value" id="kasaToplam">0,00</div></div>
 <div class="report-cell"><div class="cell-label">Toplam İndirim</div><div class="cell-value" id="kasaIndirim">0,00</div></div>
 <div class="report-cell"><div class="cell-label">İadeler</div><div class="cell-value" id="kasaIade" style="color:#b91c1c;">0,00</div></div>
-<div class="report-cell"><div class="cell-label">Fiş / İptal</div><div class="cell-value" id="kasaFisSayi">0 / 0</div></div>
+<div class="report-cell"><div class="cell-label">Fiş / Silinen</div><div class="cell-value" id="kasaFisSayi">0 / 0</div></div>
+<div class="report-cell"><div class="cell-label">Döviz komisyon kârı</div><div class="cell-value" id="kasaKomisyon" style="color:#0f766e;">0,00</div></div>
 </div>
 <div id="dovizOzet" style="display:none; background:#ccfbf1; color:#0f766e; padding:10px; border-radius:8px; font-size:13px; font-weight:800; margin-bottom:12px;"></div>
 <div style="font-weight:800; font-size:15px; margin:15px 0 6px 0;">🧾 Fişler</div>
@@ -232,25 +252,40 @@ A sütunu barkod, C ürün adı, K stok, L satış fiyatı. İlk satır başlık
 <label style="font-size:12px; font-weight:700; color:#64748b;">Döviz Kuru (TL):</label>
 <input type="text" inputmode="decimal" id="inputKurDegeri" placeholder="Örn: 41,50" oninput="dovizHesapla()" style="width:100%; padding:10px; border:2px solid #cbd5e1; border-radius:8px; font-size:18px; font-weight:800; margin-top:4px;">
 </div>
-<div style="background:#f1f5f9; padding:12px; border-radius:10px; margin-bottom:15px;">
-<div style="display:flex; justify-content:space-between; font-size:13px; color:#475569; margin-bottom:4px;"><span>Kalan Tutar (TL):</span><span id="modalSepetTL" style="font-weight:700;">0,00 ₺</span></div>
-<div style="display:flex; justify-content:space-between; font-size:13px; color:#0f766e; margin-bottom:4px;"><span>+ %3 Komisyon:</span><span id="modalKomisyonTL" style="font-weight:700;">0,00 ₺</span></div>
-<div style="border-top:1px solid #cbd5e1; padding-top:6px; display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:14px; font-weight:800;">Alınacak Döviz:</span><span id="modalAlinacakDoviz" style="font-size:24px; font-weight:900; color:#0f766e; font-family:monospace;">0.00 $</span></div>
+<div style="background:#f1f5f9; padding:12px; border-radius:10px; margin-bottom:12px;">
+<div style="display:flex; justify-content:space-between; font-size:13px; color:#475569; margin-bottom:4px;"><span>Kalan tutar:</span><span id="modalSepetTL" style="font-weight:700;">0,00 ₺</span></div>
+<div style="display:flex; justify-content:space-between; font-size:13px; color:#0f766e; margin-bottom:4px;"><span>+ %3 komisyon:</span><span id="modalKomisyonTL" style="font-weight:700;">0,00 ₺</span></div>
+<div style="display:flex; justify-content:space-between; font-size:12px; color:#64748b; margin-bottom:4px;"><span>Dövizi aldığımız kur (kur ÷ 1,03):</span><span id="modalAlisKuru" style="font-weight:700;">-</span></div>
+<div style="border-top:1px solid #cbd5e1; padding-top:6px; display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:14px; font-weight:800;">Gereken döviz:</span><span id="modalAlinacakDoviz" style="font-size:24px; font-weight:900; color:#0f766e; font-family:monospace;">0.00 $</span></div>
 </div>
+<div style="margin-bottom:12px;">
+<label style="font-size:12px; font-weight:700; color:#64748b;">Müşterinin verdiği döviz (boş bırakılırsa tam tutar):</label>
+<input type="text" inputmode="decimal" id="inputVerilenDoviz" placeholder="Örn: 100" oninput="dovizHesapla()" style="width:100%; padding:10px; border:2px solid #0f766e; border-radius:8px; font-size:20px; font-weight:800; margin-top:4px;">
+</div>
+<div id="modalParaUstuKutu" class="paraustu-buyuk" style="display:none;"><div style="font-size:13px; font-weight:800;">MÜŞTERİYE PARA ÜSTÜ (TL)</div><div class="tutar" id="modalParaUstu">0,00 ₺</div><div id="modalParaUstuNot" style="font-size:12px; font-weight:700; margin-top:4px;"></div></div>
+<div id="modalEksikNot" style="display:none; background:#fee2e2; color:#991b1b; border-radius:10px; padding:10px; font-size:13px; font-weight:700; margin-bottom:12px;"></div>
+<div style="display:flex; justify-content:space-between; font-size:13px; color:#0f766e; font-weight:800; margin-bottom:12px;"><span>Komisyon kârı:</span><span id="modalKar">0,00 ₺</span></div>
 <button onclick="dovizliTahsilatOnayla()" style="width:100%; background:#0f766e; color:#fff; border:none; padding:16px; border-radius:12px; font-size:18px; font-weight:800; cursor:pointer;">Döviz Tahsilatını Ekle</button>
 </div>
+</div>
+
+<!-- KAMERA İLE BARKOD -->
+<div id="kameraOverlay" class="kamera-overlay">
+<div class="kamera-ust"><span>📷 Barkodu kameraya gösterin</span><button onclick="kameraKapat()">Kapat</button></div>
+<div id="kameraAlan"></div>
+<div class="kamera-alt"><div id="kameraDurum">Kamera açılıyor...</div></div>
 </div>
 <div id="toast" class="toast-msg"></div>
 
 <script>
-const SURUM = 'v2.3.1';
+const SURUM = 'v2.3.2';
 let STOKLAR = {};
 let SATISLAR = [];          // Günlük sekmesinde görüntülenen günün fişleri
 let SEPET = [];
 let UYGULANAN_INDIRIM = 0;
 let ALINAN_NAKIT = 0;
 let ALINAN_KART = 0;
-let ALINAN_DOVIZ = [];      // [{cins, kur, miktar, tl, komisyon}]
+let ALINAN_DOVIZ = [];      // [{cins, kur, alisKuru, gereken, miktar, tlKarsilik, tl, paraUstu, komisyon}]
 let DUZENLENEN_SATIS_ID = null;
 let IADE_MODU = false;
 let AKTIF_DOVIZ = 'USD';
@@ -291,7 +326,15 @@ function lsSet(k, v) {
 }
 function gunOku(t) {
     const arr = lsGet('pos_satislar_' + t, []);
-    arr.forEach((s, i) => { if (!s.tarih) s.tarih = t; if (!s.tur) s.tur = 'SATIS'; });
+    arr.forEach((s, i) => {
+        if (!s.tarih) s.tarih = t; if (!s.tur) s.tur = 'SATIS';
+        (s.doviz || []).forEach(d => {
+            if (d.tlKarsilik == null) {   // v2.3 kaydı: dövizli kısım nakite eklenmişti
+                s.nakit = yuvarla((s.nakit || 0) - d.tl);
+                d.tlKarsilik = d.tl; d.paraUstu = 0; d.gereken = d.miktar; d.alisKuru = yuvarla(d.kur / 1.03 * 10000) / 10000;
+            }
+        });
+    });
     arr.sort((a, b) => a.id - b.id);
     arr.forEach((s, i) => { if (s.no == null) s.no = i + 1; });
     return arr;
@@ -407,7 +450,10 @@ function iadeModuAc() {
 const getSepetBrut = () => yuvarla(SEPET.reduce((a, x) => a + x.adet * x.fiyat, 0));
 const getSepetNet = () => yuvarla(Math.max(0, getSepetBrut() - UYGULANAN_INDIRIM));
 const getDovizTL = () => yuvarla(ALINAN_DOVIZ.reduce((a, d) => a + d.tl, 0));
-const getKalanTutar = () => yuvarla(Math.max(0, getSepetNet() - (ALINAN_NAKIT + ALINAN_KART)));
+const getKalanTutar = () => yuvarla(Math.max(0, getSepetNet() - (ALINAN_NAKIT + ALINAN_KART + getDovizTL())));
+const dovizSembol = c => c === 'EUR' ? '€' : '$';
+const kurYaz = k => (Number(k) || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+const dovizYaz = (m, c) => `${(Number(m) || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${c}`;
 
 function sepetiCiz() {
     const box = document.getElementById('sepetKonteyner');
@@ -465,8 +511,10 @@ function tahsilatGorunumGuncelle() {
     const sd = document.getElementById('satirDoviz');
     if (ALINAN_DOVIZ.length) {
         sd.style.display = 'flex';
-        document.getElementById('lblAlinanDoviz').innerText = ALINAN_DOVIZ.map(d => `${d.miktar.toFixed(2)} ${d.cins} (=${para(d.tl)} ₺ nakite dahil)`).join(', ');
-    } else sd.style.display = 'none';
+        const pu = yuvarla(ALINAN_DOVIZ.reduce((a, d) => a + d.paraUstu, 0));
+        sd.innerHTML = ALINAN_DOVIZ.map(d => `<div style="display:flex; justify-content:space-between; gap:6px;"><span>Döviz: ${dovizYaz(d.miktar, d.cins)} @ ${kurYaz(d.kur)}</span><b style="color:#0f766e;">${para(d.tl)} ₺</b></div>`).join('')
+            + (pu > 0 ? `<div class="paraustu-buyuk" style="margin:6px 0 2px;"><div style="font-size:12px; font-weight:800;">MÜŞTERİYE PARA ÜSTÜ</div><div class="tutar">${para(pu)} ₺</div></div>` : '');
+    } else { sd.style.display = 'none'; sd.innerHTML = ''; }
 }
 
 function tahsilatEkle(tur) {
@@ -547,7 +595,8 @@ function hesapKapat() {
     if (!gunYaz(bugun, gunler)) return;
     stokKaydet();
 
-    toast(fis.tur === 'IADE' ? `✓ İade kaydedildi (Fiş ${fis.no})` : (eski ? `✓ Fiş ${fis.no} düzeltildi` : `✓ Satış kaydedildi (Fiş ${fis.no})`));
+    const pu = yuvarla(fis.doviz.reduce((a, d) => a + (d.paraUstu || 0), 0));
+    toast((fis.tur === 'IADE' ? `✓ İade kaydedildi (Fiş ${fis.no})` : (eski ? `✓ Fiş ${fis.no} düzeltildi` : `✓ Satış kaydedildi (Fiş ${fis.no})`)) + (pu > 0 ? ` · Para üstü ${para(pu)} ₺` : ''), pu > 0 ? 4500 : 1600);
     sepetiBosalt();
     if (document.getElementById('seciliTarih').value === bugun) tarihDegisti();
     document.getElementById('barkodInput').focus();
@@ -591,14 +640,20 @@ function satisiSil(id) {
     toast(`Fiş ${s.no} silindi`);
 }
 
-/* ---------- Döviz ---------- */
+/* ---------- Döviz ----------
+   Satış TL kapanır. Müşterinin dövizini "kur ÷ 1,03" ile alırız (%3 komisyon).
+   Döviz, kalan tutardan fazlaysa farkı TL para üstü olarak veririz.
+   Komisyon kârı = alınan döviz × kur − müşteriye karşılığında sayılan TL. */
 function dovizModalAc() {
     if (SEPET.length === 0) return alert('Sepette ürün yok!');
     if (getKalanTutar() <= 0) return alert('Kalan tutar yok!');
     document.getElementById('modalSepetTL').innerText = para(getKalanTutar()) + ' ₺';
+    document.getElementById('inputVerilenDoviz').value = '';
+    kurDoldur(false);
     dovizHesapla();
     document.getElementById('dovizModal').classList.add('open');
-    document.getElementById('inputKurDegeri').focus();
+    const k = document.getElementById('inputKurDegeri');
+    if (!k.value) k.focus(); else document.getElementById('inputVerilenDoviz').focus();
 }
 function dovizModalKapat() { document.getElementById('dovizModal').classList.remove('open'); }
 function paraBirimiSec(tur) {
@@ -606,23 +661,64 @@ function paraBirimiSec(tur) {
     document.getElementById('btnSecUSD').className = 'btn-curr-choice' + (tur === 'USD' ? ' selected' : '');
     document.getElementById('btnSecEUR').className = 'btn-curr-choice' + (tur === 'EUR' ? ' selected' : '');
     document.getElementById('linkTrading').href = `https://tr.tradingview.com/symbols/${tur}TRY/`;
+    kurDoldur(true);
     dovizHesapla();
 }
-function dovizHesapla() {
+function kurDoldur(zorla) {
+    const inp = document.getElementById('inputKurDegeri');
+    if (inp.value && !zorla) return;
+    const k = lsGet('pos_kur_' + AKTIF_DOVIZ, null);
+    inp.value = (k && k.gun === isGunu()) ? String(k.kur).replace('.', ',') : '';
+}
+function dovizHesap() {
     const kalan = getKalanTutar();
     const kur = sayiOku(document.getElementById('inputKurDegeri').value) || 0;
-    const kom = kalan * 0.03;
-    const sembol = AKTIF_DOVIZ === 'USD' ? '$' : '€';
-    document.getElementById('modalKomisyonTL').innerText = para(kom) + ' ₺';
-    document.getElementById('modalAlinacakDoviz').innerText = (kur > 0 ? ((kalan + kom) / kur).toFixed(2) : '0.00') + ' ' + sembol;
+    const verilenGirdi = sayiOku(document.getElementById('inputVerilenDoviz').value);
+    if (!(kur > 0) || kalan <= 0) return { kalan, kur, gecerli: false };
+    const alisKuru = kur / 1.03;
+    const gereken = Math.ceil(kalan / alisKuru * 100) / 100;          // kuruşu yukarı yuvarla
+    const verilen = (verilenGirdi > 0) ? yuvarla(verilenGirdi) : gereken;
+    let tlKarsilik = yuvarla(verilen * alisKuru);
+    // Tam tutar (miktar girilmedi ya da tam gereken miktar girildi): kuruş yuvarlamasından para üstü çıkmasın
+    if (!(verilenGirdi > 0) || verilen === gereken) tlKarsilik = kalan;
+    const tl = yuvarla(Math.min(tlKarsilik, kalan));
+    const paraUstu = yuvarla(tlKarsilik - tl);
+    const komisyon = yuvarla(verilen * kur - tlKarsilik);
+    return { gecerli: true, kalan, kur, alisKuru, gereken, verilen, tlKarsilik, tl, paraUstu, komisyon, eksik: yuvarla(kalan - tl) };
+}
+function dovizHesapla() {
+    const h = dovizHesap();
+    const sembol = dovizSembol(AKTIF_DOVIZ);
+    document.getElementById('modalSepetTL').innerText = para(h.kalan) + ' ₺';
+    document.getElementById('modalKomisyonTL').innerText = para(h.kalan * 0.03) + ' ₺';
+    const puKutu = document.getElementById('modalParaUstuKutu'), eksik = document.getElementById('modalEksikNot');
+    if (!h.gecerli) {
+        document.getElementById('modalAlinacakDoviz').innerText = '0,00 ' + sembol;
+        document.getElementById('modalAlisKuru').innerText = '-';
+        document.getElementById('modalKar').innerText = '0,00 ₺';
+        puKutu.style.display = 'none'; eksik.style.display = 'none';
+        return;
+    }
+    document.getElementById('modalAlinacakDoviz').innerText = h.gereken.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ' + sembol;
+    document.getElementById('modalAlisKuru').innerText = kurYaz(h.alisKuru) + ' ₺';
+    document.getElementById('modalKar').innerText = para(h.komisyon) + ' ₺';
+    if (h.paraUstu > 0) {
+        puKutu.style.display = 'block';
+        document.getElementById('modalParaUstu').innerText = para(h.paraUstu) + ' ₺';
+        document.getElementById('modalParaUstuNot').innerText = `${dovizYaz(h.verilen, AKTIF_DOVIZ)} = ${para(h.tlKarsilik)} ₺ · alışveriş ${para(h.tl)} ₺`;
+    } else puKutu.style.display = 'none';
+    if (h.eksik > 0.009) {
+        eksik.style.display = 'block';
+        eksik.innerText = `Verilen döviz yetmiyor: ${para(h.tl)} ₺ karşılıyor. Kalan ${para(h.eksik)} ₺ nakit veya kartla alınmalı.`;
+    } else eksik.style.display = 'none';
 }
 function dovizliTahsilatOnayla() {
-    const kur = sayiOku(document.getElementById('inputKurDegeri').value) || 0;
-    if (kur <= 0) return alert('Geçerli bir kur girin!');
-    const kalan = getKalanTutar();
-    const kom = yuvarla(kalan * 0.03);
-    ALINAN_DOVIZ.push({ cins: AKTIF_DOVIZ, kur: kur, miktar: yuvarla((kalan + kom) / kur), tl: kalan, komisyon: kom });
-    ALINAN_NAKIT = yuvarla(ALINAN_NAKIT + kalan);  // satış TL kapanır; döviz ayrıca kaydedilir
+    const h = dovizHesap();
+    if (!(h.kur > 0)) return alert('Geçerli bir kur girin!');
+    if (!h.gecerli) return alert('Kalan tutar yok!');
+    lsSet('pos_kur_' + AKTIF_DOVIZ, { kur: h.kur, gun: isGunu() });
+    ALINAN_DOVIZ.push({ cins: AKTIF_DOVIZ, kur: h.kur, alisKuru: yuvarla(h.alisKuru * 10000) / 10000, gereken: h.gereken, miktar: h.verilen,
+        tlKarsilik: h.tlKarsilik, tl: h.tl, paraUstu: h.paraUstu, komisyon: h.komisyon });
     dovizModalKapat();
     sepetiCiz();
 }
@@ -635,7 +731,7 @@ function tarihDegisti() {
 }
 
 function gunHesapla(liste) {
-    const r = { nakit: 0, kart: 0, indirim: 0, iade: 0, fis: 0, iptal: 0, doviz: {}, urunler: {} };
+    const r = { nakit: 0, kart: 0, dovizTL: 0, paraUstu: 0, dovizAlimTL: 0, komisyon: 0, indirim: 0, iade: 0, fis: 0, iptal: 0, doviz: {}, urunler: {} };
     liste.forEach(s => {
         if (s.iptal) { r.iptal++; return; }
         r.fis++;
@@ -644,8 +740,9 @@ function gunHesapla(liste) {
         r.kart += z * (s.kart || 0);
         if (z > 0) r.indirim += s.indirim || 0; else r.iade += s.net || 0;
         (s.doviz || []).forEach(d => {
-            r.doviz[d.cins] = r.doviz[d.cins] || { miktar: 0, tl: 0, komisyon: 0 };
-            r.doviz[d.cins].miktar += d.miktar; r.doviz[d.cins].tl += d.tl; r.doviz[d.cins].komisyon += d.komisyon;
+            const c = r.doviz[d.cins] || (r.doviz[d.cins] = { miktar: 0, tl: 0, tlKarsilik: 0, paraUstu: 0, komisyon: 0, adet: 0 });
+            c.miktar += d.miktar; c.tl += d.tl; c.tlKarsilik += d.tlKarsilik; c.paraUstu += d.paraUstu || 0; c.komisyon += d.komisyon; c.adet++;
+            r.dovizTL += d.tl; r.paraUstu += d.paraUstu || 0; r.dovizAlimTL += d.tlKarsilik; r.komisyon += d.komisyon;
         });
         s.kalemler.forEach(k => {
             const u = r.urunler[k.barkod] || (r.urunler[k.barkod] = { barkod: k.barkod, ad: k.ad, adet: 0, tutar: 0 });
@@ -663,15 +760,20 @@ function raporGuncelle() {
     const r = gunHesapla(SATISLAR);
     document.getElementById('kasaNakit').innerText = para(r.nakit);
     document.getElementById('kasaKart').innerText = para(r.kart);
-    document.getElementById('kasaToplam').innerText = para(r.nakit + r.kart);
+    document.getElementById('kasaToplam').innerText = para(r.nakit + r.kart + r.dovizTL);
     document.getElementById('kasaIndirim').innerText = para(r.indirim);
     document.getElementById('kasaIade').innerText = para(r.iade);
     document.getElementById('kasaFisSayi').innerText = `${r.fis} / ${r.iptal}`;
+    document.getElementById('kasaDovizTL').innerText = para(r.dovizTL);
+    document.getElementById('kasaKomisyon').innerText = para(r.komisyon);
     const dz = document.getElementById('dovizOzet');
     const dk = Object.keys(r.doviz);
     if (dk.length) {
         dz.style.display = 'block';
-        dz.innerText = '💱 Kasadaki döviz: ' + dk.map(c => `${r.doviz[c].miktar.toFixed(2)} ${c} (karşılığı ${para(r.doviz[c].tl)} ₺ nakit kasaya dahil)`).join(' · ');
+        dz.innerHTML = `<div style="font-size:14px; margin-bottom:6px;">💱 Döviz</div>`
+            + dk.map(c => { const d = r.doviz[c]; return `<div>${d.adet} işlem · alınan <b>${dovizYaz(d.miktar, c)}</b> · satışa sayılan ${para(d.tl)} ₺ · para üstü ${para(d.paraUstu)} ₺</div>`; }).join('')
+            + `<div style="margin-top:6px;">Komisyon kârı: <b>${para(r.komisyon)} ₺</b></div>`
+            + `<div style="margin-top:6px; padding-top:6px; border-top:1px solid #5eead4;">Bugün çekmeceye net giren: <b>${para(r.nakit - r.paraUstu)} ₺</b> TL nakit (para üstü düşülmüş) + ${dk.map(c => `<b>${dovizYaz(r.doviz[c].miktar, c)}</b>`).join(' + ')}</div>`;
     } else dz.style.display = 'none';
 
     const tbody = document.getElementById('tblUrunBazliSatis');
@@ -690,7 +792,8 @@ function raporGuncelle() {
             + (s.duzenlendi ? '<span class="rozet rz-edit">DÜZELTİLDİ</span>' : '')
             + (s.iptal ? `<span class="rozet rz-iptal">SİLİNDİ ${esc(s.iptalSaat || '')}</span>` : '');
         const kalemler = s.kalemler.map(k => `${k.adet}× ${esc(k.ad)} (${para(k.fiyat)})`).join(', ');
-        const doviz = (s.doviz || []).map(d => ` | ${d.miktar.toFixed(2)} ${d.cins} @${d.kur}`).join('');
+        const doviz = (s.doviz || []).length ? ` | Döviz: <b>${para(z * s.doviz.reduce((a, d) => a + d.tl, 0))}</b>` : '';
+        const dovizSatir = (s.doviz || []).map(d => `<div class="doviz-satir">💱 <b>${dovizYaz(d.miktar, d.cins)}</b> alındı @ ${kurYaz(d.kur)} (alış ${kurYaz(d.alisKuru)}) = ${para(d.tlKarsilik)} ₺ · satışa ${para(d.tl)} ₺${d.paraUstu > 0 ? ` · <b>para üstü ${para(d.paraUstu)} ₺</b>` : ''} · kâr ${para(d.komisyon)} ₺</div>`).join('');
         const butonlar = (bugunMu && !s.iptal) ? `<div style="display:flex; gap:6px;">
 <button class="fis-btn" style="background:#0f172a;" onclick="satisiSepeteAktar(${s.id})">⇄ Düzelt</button>
 <button class="fis-btn" style="background:#dc2626;" onclick="satisiSil(${s.id})">🗑 Sil</button></div>` : '';
@@ -703,7 +806,7 @@ ${butonlar}</div>
 <div style="display:flex; justify-content:space-between; font-size:12px; border-top:1px dashed #e2e8f0; padding-top:6px; gap:6px; flex-wrap:wrap;">
 <span>Nakit: <b>${para(z * s.nakit)}</b> | Kart: <b>${para(z * s.kart)}</b>${s.indirim ? ` | İnd: <b>${para(s.indirim)}</b>` : ''}${doviz}</span>
 <span style="font-weight:900; color:${z < 0 ? '#b91c1c' : '#1e3a8a'}; font-size:14px;">${para(z * s.net)} ₺</span>
-</div></div></div>`;
+</div>${dovizSatir}</div></div>`;
     }).join('');
 }
 
@@ -728,26 +831,37 @@ function gunSonuExceliIndir() {
     const N = (v, st) => `<Cell ss:StyleID="${st || 'Num'}"><Data ss:Type="Number">${yuvarla(v)}</Data></Cell>`;
     const I = (v, st) => `<Cell ss:StyleID="${st || 'Int'}"><Data ss:Type="Number">${v}</Data></Cell>`;
     const E = () => '<Cell/>';
+    const N4 = (v, st) => `<Cell ss:StyleID="${st || 'Num4'}"><Data ss:Type="Number">${Math.round((Number(v) || 0) * 10000) / 10000}</Data></Cell>`;
     const row = (cells, st) => `<Row${st ? ` ss:StyleID="${st}"` : ''}>${cells.join('')}</Row>`;
     const cols = ws => ws.map(w => `<Column ss:Width="${w}"/>`).join('');
-    const dovizMetni = s => (s.doviz || []).map(d => `${d.miktar.toFixed(2)} ${d.cins} @ ${d.kur}`).join(' + ');
+    const dovizMetni = s => (s.doviz || []).map(d => `${dovizYaz(d.miktar, d.cins)} @ ${kurYaz(d.kur)}`).join(' + ');
+    const fDovizTL = s => (s.doviz || []).reduce((a, d) => a + d.tl, 0);
+    const fParaUstu = s => (s.doviz || []).reduce((a, d) => a + (d.paraUstu || 0), 0);
+    const fKomisyon = s => (s.doviz || []).reduce((a, d) => a + d.komisyon, 0);
     const turAd = s => s.tur === 'IADE' ? 'İADE' : 'SATIŞ';
 
     // 1) Özet
     let ozet = row([S('Mobil Kasa gün sonu', 'Baslik')]) + row([S('Tarih'), S(tarihUzun(t))]) + row([S('Cihaz kullanıcısı'), S(KISI)]) + row([S('Çıktı alındı'), S(new Date().toLocaleString('tr-TR'))]) + row([S('Sürüm'), S(SURUM)]) + row([]);
-    ozet += row([S('Nakit (net)', 'Bold'), N(r.nakit)]) + row([S('Kredi kartı (net)', 'Bold'), N(r.kart)]) + row([S('Toplam tahsilat', 'Bold'), N(r.nakit + r.kart, 'NumBold')]);
+    ozet += row([S('Nakit TL (net)', 'Bold'), N(r.nakit)]) + row([S('Kredi kartı (net)', 'Bold'), N(r.kart)]) + row([S('Dövizle ödenen (TL karşılığı)', 'Bold'), N(r.dovizTL)]) + row([S('Toplam satış (net)', 'Bold'), N(r.nakit + r.kart + r.dovizTL, 'NumBold')]);
     ozet += row([S('Toplam indirim'), N(r.indirim)]) + row([S('Toplam iade'), N(r.iade)]) + row([S('Fiş sayısı'), I(r.fis)]) + row([S('Silinen fiş'), I(silinen.length)]);
-    Object.keys(r.doviz).forEach(c => { ozet += row([S(`Alınan döviz ${c}`), N(r.doviz[c].miktar), S(`TL karşılığı ${para(r.doviz[c].tl)} (nakite dahil), komisyon ${para(r.doviz[c].komisyon)}`)]); });
+    if (Object.keys(r.doviz).length) {
+        ozet += row([]) + row([S('DÖVİZ', 'Bold')]);
+        Object.keys(r.doviz).forEach(c => { const d = r.doviz[c]; ozet += row([S(`Alınan döviz (${c})`), N(d.miktar), S(`${d.adet} işlem · müşteriye sayılan ${para(d.tlKarsilik)} TL · satışa ${para(d.tl)} TL · para üstü ${para(d.paraUstu)} TL`)]); });
+        ozet += row([S('Döviz komisyon kârı (TL)', 'Bold'), N(r.komisyon, 'NumBold')]);
+        ozet += row([S('Para üstü verilen (TL)'), N(r.paraUstu)]);
+    }
+    ozet += row([]) + row([S('Çekmeceye net giren TL nakit', 'Bold'), N(r.nakit - r.paraUstu, 'NumBold'), S('Nakit TL − döviz para üstü (açılış parası hariç)')]);
+    Object.keys(r.doviz).forEach(c => { ozet += row([S(`Çekmeceye giren ${c}`, 'Bold'), N(r.doviz[c].miktar, 'NumBold')]); });
 
     // 2) Fişler (her fiş bir satır)
-    let fisler = row(['Fiş No','Saat','Tür','Satan','Kalem','Adet','Brüt','İndirim','Net','Nakit','Kart','Döviz','Not'].map(h => S(h, 'Header')));
+    let fisler = row(['Fiş No','Saat','Tür','Satan','Kalem','Adet','Brüt','İndirim','Net','Nakit TL','Kart','Döviz (TL)','Alınan döviz','Para üstü','Kom. kârı','Not'].map(h => S(h, 'Header')));
     aktif.forEach(s => {
         const z = isaret(s), st = z < 0 ? 'Iade' : null;
         const adet = s.kalemler.reduce((a, k) => a + k.adet, 0);
         const not = s.duzenlendi ? `Düzeltildi ${s.duzenlemeSaat || ''} ${s.duzenleyen || ''}`.trim() : '';
-        fisler += row([I(s.no), S(s.saat), S(turAd(s), st), S(s.kisi || ''), I(s.kalemler.length), I(z * adet), N(z * s.brut, st ? 'NumIade' : null), N(s.indirim || 0), N(z * s.net, st ? 'NumIade' : 'NumBold'), N(z * s.nakit), N(z * s.kart), S(dovizMetni(s)), S(not)]);
+        fisler += row([I(s.no), S(s.saat), S(turAd(s), st), S(s.kisi || ''), I(s.kalemler.length), I(z * adet), N(z * s.brut, st ? 'NumIade' : null), N(s.indirim || 0), N(z * s.net, st ? 'NumIade' : 'NumBold'), N(z * s.nakit), N(z * s.kart), N(z * fDovizTL(s)), S(dovizMetni(s)), N(fParaUstu(s)), N(fKomisyon(s)), S(not)]);
     });
-    fisler += row([S('TOPLAM','Bold'),E(),E(),E(),E(),E(),E(),N(r.indirim,'NumBold'),N(r.nakit + r.kart,'NumBold'),N(r.nakit,'NumBold'),N(r.kart,'NumBold')]);
+    fisler += row([S('TOPLAM','Bold'),E(),E(),E(),E(),E(),E(),N(r.indirim,'NumBold'),N(r.nakit + r.kart + r.dovizTL,'NumBold'),N(r.nakit,'NumBold'),N(r.kart,'NumBold'),N(r.dovizTL,'NumBold'),E(),N(r.paraUstu,'NumBold'),N(r.komisyon,'NumBold')]);
 
     // 3) Fiş Detayı (fiş fiş gruplu)
     let detay = row(['Fiş No','Saat','Tür','Barkod','Ürün Adı','Adet','Birim Fiyat','Tutar','Liste Fiyatı'].map(h => S(h, 'Header')));
@@ -755,7 +869,7 @@ function gunSonuExceliIndir() {
         const z = isaret(s), iade = z < 0;
         const odeme = [`Nakit ${para(z * s.nakit)}`, `Kart ${para(z * s.kart)}`];
         if (s.indirim) odeme.push(`İndirim ${para(s.indirim)}`);
-        if (s.doviz && s.doviz.length) odeme.push(`Döviz ${dovizMetni(s)}`);
+        if (s.doviz && s.doviz.length) odeme.push(`Döviz ${para(fDovizTL(s))}`);
         if (s.kisi) odeme.push(s.kisi);
         const gst = iade ? 'GrupIade' : 'Grup';
         detay += row([I(s.no, gst), S(s.saat, gst), S(turAd(s), gst), S('', gst), S(odeme.join(' · '), gst), S('', gst), S('', gst), N(z * s.net, iade ? 'GrupIadeNum' : 'GrupNum'), S('', gst)]);
@@ -764,6 +878,9 @@ function gunSonuExceliIndir() {
             detay += row([I(s.no, 'Soluk'), E(), E(), S(k.barkod, 'Mono'), S(k.ad + (k.kayitsiz ? ' (listede yok)' : '')), I(z * k.adet), N(k.fiyat), N(z * k.adet * k.fiyat), lf]);
         });
         if (s.indirim) detay += row([I(s.no, 'Soluk'), E(), E(), E(), S('Fiş indirimi', 'Ital'), E(), E(), N(-s.indirim), E()]);
+        (s.doviz || []).forEach(d => {
+            detay += row([I(s.no, 'Soluk'), E(), E(), S(`DÖVİZ ${d.cins}`, 'Doviz'), S(`${dovizYaz(d.miktar, d.cins)} alındı @ ${kurYaz(d.kur)} (alış ${kurYaz(d.alisKuru)}) = ${para(d.tlKarsilik)} TL · satışa ${para(d.tl)} TL · para üstü ${para(d.paraUstu || 0)} TL · kâr ${para(d.komisyon)} TL`, 'Doviz'), E(), E(), N(d.tl, 'DovizNum'), E()]);
+        });
         detay += row([]);
     });
 
@@ -776,7 +893,15 @@ function gunSonuExceliIndir() {
         urun += row([S(u.barkod), S(u.ad), I(u.adet), N(u.tutar), u.kalanStok == null ? S('listede yok') : I(u.kalanStok), S(durum)], st);
     });
 
-    // 5) Silinen fişler
+    // 5) Döviz işlemleri
+    let dvz = row(['Fiş No','Saat','Satan','Ürünler','Fiş tutarı','Döviz','Kur','Alış kuru (kur÷1,03)','Gereken döviz','Alınan döviz','Müşteriye sayılan TL','Satışa sayılan TL','Para üstü TL','Komisyon kârı TL'].map(h => S(h, 'Header')));
+    aktif.forEach(s => (s.doviz || []).forEach(d => {
+        dvz += row([I(s.no), S(s.saat), S(s.kisi || ''), S(s.kalemler.map(k => `${k.adet}× ${k.ad}`).join(', ')), N(s.net), S(d.cins), N4(d.kur), N4(d.alisKuru), N(d.gereken), N(d.miktar, 'NumBold'), N(d.tlKarsilik), N(d.tl), N(d.paraUstu || 0, 'NumBold'), N(d.komisyon, 'NumBold')]);
+    }));
+    if (r.dovizTL || Object.keys(r.doviz).length) dvz += row([S('TOPLAM','Bold'),E(),E(),E(),E(),E(),E(),E(),E(),E(),N(r.dovizAlimTL,'NumBold'),N(r.dovizTL,'NumBold'),N(r.paraUstu,'NumBold'),N(r.komisyon,'NumBold')]);
+    else dvz += row([S('Bu gün döviz işlemi yok.')]);
+
+    // 6) Silinen fişler
     let sil = row(['Fiş No','Saat','Tür','Satan','Net','Silinme saati','Silen','Ürünler'].map(h => S(h, 'Header')));
     silinen.forEach(s => { sil += row([I(s.no), S(s.saat), S(turAd(s)), S(s.kisi || ''), N(isaret(s) * s.net), S(s.iptalSaat || ''), S(s.iptalEden || ''), S(s.kalemler.map(k => `${k.adet}× ${k.ad}`).join(', '))]); });
 
@@ -794,6 +919,9 @@ function gunSonuExceliIndir() {
 <Style ss:ID="Num"><NumberFormat ss:Format="#,##0.00"/></Style>
 <Style ss:ID="NumBold"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><NumberFormat ss:Format="#,##0.00"/></Style>
 <Style ss:ID="Int"><NumberFormat ss:Format="0"/></Style>
+<Style ss:ID="Num4"><NumberFormat ss:Format="#,##0.0000"/></Style>
+<Style ss:ID="Doviz"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#0F766E"/><Interior ss:Color="#CCFBF1" ss:Pattern="Solid"/></Style>
+<Style ss:ID="DovizNum"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#0F766E"/><Interior ss:Color="#CCFBF1" ss:Pattern="Solid"/><NumberFormat ss:Format="#,##0.00"/></Style>
 <Style ss:ID="Iade"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#B91C1C" ss:Bold="1"/></Style>
 <Style ss:ID="NumIade"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#B91C1C" ss:Bold="1"/><NumberFormat ss:Format="#,##0.00"/></Style>
 <Style ss:ID="Grup"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><Interior ss:Color="#E2E8F0" ss:Pattern="Solid"/></Style>
@@ -804,9 +932,10 @@ function gunSonuExceliIndir() {
 <Style ss:ID="Eksi"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#9F1239" ss:Bold="1"/><Interior ss:Color="#FFE4E6" ss:Pattern="Solid"/></Style>
 </Styles>
 ${ws('Özet', [170, 120, 380], ozet)}
-${ws('Fişler', [50, 45, 50, 80, 45, 45, 75, 65, 80, 75, 75, 140, 160], fisler)}
+${ws('Fişler', [50, 45, 50, 80, 45, 45, 75, 65, 80, 75, 75, 80, 140, 75, 75, 160], fisler)}
 ${ws('Fiş Detayı', [50, 45, 50, 105, 320, 45, 75, 80, 75], detay)}
 ${ws('Ürün Bazlı', [105, 300, 60, 120, 70, 90], urun)}
+${ws('Döviz', [50, 45, 80, 300, 75, 50, 65, 110, 85, 85, 120, 110, 85, 105], dvz)}
 ${ws('Silinen Fişler', [50, 45, 50, 80, 75, 85, 80, 400], sil)}
 </Workbook>`;
     const ad = `Kasa_${tarihTR(t).replace(/\./g, '-')}${KISI ? '_' + KISI.replace(/[^\wçğıöşüÇĞİÖŞÜ]/g, '') : ''}.xls`;
@@ -952,6 +1081,66 @@ async function zipAc(buf, istenen) {
         p += 46 + fnLen + exLen + cmLen;
     }
     return sonuc;
+}
+
+/* ---------- Kamera ile barkod okuma ---------- */
+let KAMERA = null, KAMERA_HEDEF = 'satis', KAMERA_KILIT = false, KUTUPHANE = null;
+function kutuphaneYukle() {
+    if (window.Html5Qrcode) return Promise.resolve();
+    if (KUTUPHANE) return KUTUPHANE;
+    KUTUPHANE = new Promise((ok, hata) => {
+        const sc = document.createElement('script');
+        sc.src = 'html5-qrcode.min.js';
+        sc.onload = () => ok();
+        sc.onerror = () => { KUTUPHANE = null; hata(new Error('Barkod okuyucu yüklenemedi. İnternete bağlanıp bir kez daha deneyin.')); };
+        document.head.appendChild(sc);
+    });
+    return KUTUPHANE;
+}
+async function kameraAc(hedef) {
+    KAMERA_HEDEF = hedef; KAMERA_KILIT = false;
+    const durum = document.getElementById('kameraDurum');
+    document.getElementById('kameraOverlay').classList.add('open');
+    durum.innerText = 'Kamera açılıyor...';
+    try {
+        if (!window.isSecureContext || !navigator.mediaDevices) throw new Error('Kamera yalnızca ana ekrandaki Kasa uygulamasında (https adresinde) çalışır.');
+        await kutuphaneYukle();
+        const F = Html5QrcodeSupportedFormats;
+        KAMERA = new Html5Qrcode('kameraAlan', {
+            verbose: false,
+            formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF],
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        });
+        await KAMERA.start({ facingMode: 'environment' }, {
+            fps: 12,
+            qrbox: (w, h) => ({ width: Math.floor(Math.min(w * 0.85, 360)), height: Math.floor(Math.min(h * 0.3, 170)) })
+        }, kameraOkundu, () => {});
+        durum.innerText = 'Barkodu çerçevenin içine getirin. Okununca kendiliğinden kapanır.';
+    } catch (err) {
+        const m = String(err && (err.message || err));
+        durum.innerText = /NotAllowed|Permission|izin/i.test(m)
+            ? 'Kamera izni verilmedi. iPhone Ayarlar → Safari → Kamera bölümünden "Sor" veya "İzin Ver" seçin, sonra tekrar deneyin.'
+            : 'Kamera açılamadı: ' + m;
+    }
+}
+async function kameraOkundu(metin) {
+    if (KAMERA_KILIT) return;
+    KAMERA_KILIT = true;
+    const b = normBarkod(String(metin).replace(/\s/g, ''));
+    try { navigator.vibrate && navigator.vibrate(80); } catch (e) {}
+    await kameraKapat();
+    if (KAMERA_HEDEF === 'urunler') {
+        arama.value = b; stokAra(); aramaYeniOkutma = true;
+    } else {
+        const inp = document.getElementById('barkodInput');
+        inp.value = b; barkodManuelEkle();
+    }
+    toast('📷 ' + b);
+}
+async function kameraKapat() {
+    try { if (KAMERA) { if (KAMERA.isScanning) await KAMERA.stop(); KAMERA.clear(); } } catch (e) {}
+    KAMERA = null;
+    document.getElementById('kameraOverlay').classList.remove('open');
 }
 
 /* ---------- Sekmeler ---------- */
