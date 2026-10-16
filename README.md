@@ -51,7 +51,7 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 > - iPad'de ekranın altında çıkan küçük çubuktaki klavye simgesiyle ekran klavyesi açılabilir.
 > - Bazı Bluetooth okuyucuların kılavuzunda ekran klavyesini açıp kapatan özel bir barkod ya da tuş vardır.
 >
-> Kamera butonu bundan etkilenmez: okuyucu bağlıyken de 📷 ile kameradan okutulabilir.
+> Kamera butonunun bundan etkilenmemesi beklenir: okuyucu bağlıyken de 📷 ile kameradan okutulabilmelidir. *(Henüz test edilmedi: kablolu okuyucu takılıyken iPhone/iPad'de kameranın açıldığı denenmedi.)*
 
 > Lightning girişli bazı iPhone'larda kablolu okuyucu takılınca *"Bu aksesuar çok fazla güç gerektiriyor"* uyarısı çıkabilir. Bu durumda şarj girişi olan *USB 3 Kamera Adaptörü* kullanın ve adaptöre şarj kablosu takın.
 
