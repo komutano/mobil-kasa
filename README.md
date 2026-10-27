@@ -6,7 +6,7 @@ Günün sonunda tüm satışlar fiş fiş Excel'e aktarılır ve ana programa gi
 
 **Adres:** https://komutano.github.io/mobil-kasa/
 
-Güncel sürüm: **v2.3.2**
+Güncel sürüm: **v2.4.0**
 
 ---
 
@@ -44,14 +44,14 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 |---|---|
 | **Bluetooth okuyucu** | iPhone/iPad'in Bluetooth ayarlarından eşleştirin. Okuyucu klavye gibi çalışır. |
 | **Kablolu (USB) okuyucu** | Bir **çevirici** ile takın: Lightning girişli cihazlarda *Lightning – USB 3 Kamera Adaptörü*, USB-C girişli cihazlarda *USB-C – USB adaptörü*. Okuyucu yine klavye gibi çalışır, ek ayar gerekmez. |
-| **Kamera** | Barkod kutusunun yanındaki **📷** butonu. Okuyucu gerekmez. |
+| **Kamera** | Barkod kutusunun yanındaki **barkod simgeli** buton. Okuyucu gerekmez. |
 
 > ⚠️ **Okuyucu bağlıyken ekran klavyesi açılmaz.** iPhone/iPad, kablolu ya da Bluetooth okuyucuyu gerçek bir klavye sayar ve ekran klavyesini gizler. Tutar, indirim, kur ya da ürün adı yazmanız gerekirse:
 > - Kablolu okuyucuyu çıkarın ya da Bluetooth okuyucuyu kapatın, klavye geri gelir.
 > - iPad'de ekranın altında çıkan küçük çubuktaki klavye simgesiyle ekran klavyesi açılabilir.
 > - Bazı Bluetooth okuyucuların kılavuzunda ekran klavyesini açıp kapatan özel bir barkod ya da tuş vardır.
 >
-> Kamera butonunun bundan etkilenmemesi beklenir: okuyucu bağlıyken de 📷 ile kameradan okutulabilmelidir. *(Henüz test edilmedi: kablolu okuyucu takılıyken iPhone/iPad'de kameranın açıldığı denenmedi.)*
+> Kamera butonunun bundan etkilenmemesi beklenir: okuyucu bağlıyken de kamera butonuyla okutulabilmelidir. *(Henüz test edilmedi: kablolu okuyucu takılıyken iPhone/iPad'de kameranın açıldığı denenmedi.)*
 
 > Lightning girişli bazı iPhone'larda kablolu okuyucu takılınca *"Bu aksesuar çok fazla güç gerektiriyor"* uyarısı çıkabilir. Bu durumda şarj girişi olan *USB 3 Kamera Adaptörü* kullanın ve adaptöre şarj kablosu takın.
 
@@ -76,7 +76,9 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 
 ### Satış
 - Barkod okutun (Bluetooth okuyucu ya da klavye ile). Ürün sepete eklenir.
-- Okuyucu yoksa barkod kutusunun yanındaki **📷** butonuna basın. Kamera açılır, barkodu görünce kendisi okur ve sepete ekler. 13 haneden kısa barkodların başına sıfır eklenir. (İlk kullanımda kamera izni istenir.)
+- Okuyucu yoksa barkod kutusunun yanındaki **barkod simgeli** butona basın. Kamera açılır; barkodu çerçevenin içine getirip telefonu 15–20 cm uzakta tutun. Okununca **bip** sesi gelir, çerçeve yeşil yanar ve ürün sepete eklenir. 13 haneden kısa barkodların başına sıfır eklenir. (İlk kullanımda kamera izni istenir.)
+  - Telefon destekliyorsa sağ altta **1× / 2×** düğmesi çıkar. Kamera 2× yakınlaştırmayla açılır; barkod küçükse ya da odak tutmuyorsa düğmeyle değiştirin.
+  - iPhone sessiz moddaysa bip sesi duyulmayabilir; yeşil çerçeve yine görünür.
 - Adedi **– / +** ile değiştirin. Fiyata dokunarak birim fiyatı değiştirebilirsiniz.
 - **Nakit** veya **Kredi kartı** ile tahsil edin. Barkod kutusuna bir tutar yazıp butona basarsanız parçalı ödeme yapılır (örneğin 200 nakit, kalanı kart).
 - **Döviz (USD/EUR):** Kur elle girilir (aynı gün içinde hatırlanır). Müşterinin dövizi **kur ÷ 1,03** ile alınır (%3 komisyon).
@@ -94,7 +96,7 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 - **Değişim** için önce iade, sonra normal satış yapın.
 
 ### Ürünler (fiyat sorgu)
-- Barkod okutun ya da **📷** ile kameradan okutun. Ürünün fiyatı ve stoğu büyük olarak gösterilir.
+- Barkod okutun ya da **barkod simgeli** butonla kameradan okutun. Ürünün fiyatı ve stoğu büyük olarak gösterilir.
 - Bir sonraki barkod okutulduğunda eskisinin yerine yazılır, silmeye gerek yoktur.
 - Ürün adıyla da arama yapılabilir.
 
@@ -145,7 +147,7 @@ Her telefondan ayrı bir dosya çıkar (`Kasa_GG-AA-YYYY_İsim.xls`). İçindeki
 | Dosya | Görevi |
 |---|---|
 | `index.html` | Programın tamamı (ekranlar ve kod) |
-| `html5-qrcode.min.js` | Kamera ile barkod okuma kütüphanesi ([html5-qrcode](https://github.com/mebjas/html5-qrcode), Apache 2.0 lisansı: `html5-qrcode.LICENSE`) |
+| `zxing-reader.js`, `zxing_reader.wasm` | Kamera ile barkod okuma motoru ([zxing-wasm](https://github.com/Sec-ant/zxing-wasm) 3.1.6, ZXing-C++ tabanlı, MIT lisansı: `zxing-wasm.LICENSE`) |
 | `sw.js` | İnternetsiz çalışma ve otomatik güncelleme |
 | `manifest.json` | Ana ekran ikonu ve uygulama adı |
 | `icon-*.png` | Uygulama ikonları |
@@ -158,6 +160,7 @@ Telefonlar internete bağlıyken bir sonraki açılışta yeni sürümü kendili
 
 ## Sürüm geçmişi
 
+- **v2.4.0:** Kamera ile okuma baştan yazıldı: iPhone'da çalışmayan eski okuyucu yerine ZXing-C++ tabanlı zxing-wasm kullanılıyor. Kamera yüksek çözünürlükte, sürekli odakla ve destekleniyorsa 2× yakınlaştırmayla açılır. Okununca bip sesi ve yeşil çerçeve. Yanlış okumaya karşı oylama: stok listesindeki barkod 2 karede aynı okununca, listede olmayan barkod en az 1 saniye ve 4 karede aynı okununca kabul edilir. Kamera butonu barkod simgeli ve açık renkli yapıldı.
 - **v2.3.2:** Dövizde müşterinin verdiği miktar girilir ve TL para üstü hesaplanır. Döviz işlemleri ve komisyon kârı fişte, Günlük ekranında ve Excel'de (yeni *Döviz* sayfası) ayrıca gösterilir. Barkod kutusunun yanına kamera ile okuma butonu eklendi.
 - **v2.3.1:** Fiyat sorguda yeni okutulan barkod eskisinin yerine yazılır (iPhone uyumu). Açılışta her zaman en yeni sürüm yüklenir.
 - **v2.3:** İade, fiş silme ve düzeltme, çok sayfalı gün sonu Excel'i, satan kişi bilgisi, 04:00 gün devri, döviz kaydı, ana ekrana ekleme ve internetsiz çalışma.

@@ -1,7 +1,7 @@
 // Mobil Kasa — internetsiz çalışma.
 // İnternet varsa her açılışta en yeni sürümü alır; yoksa telefondaki kopyayı açar.
-const CACHE = 'mobil-kasa-v3';
-const DOSYALAR = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png', './html5-qrcode.min.js'];
+const CACHE = 'mobil-kasa-v4';
+const DOSYALAR = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png', './zxing-reader.js', './zxing_reader.wasm'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(DOSYALAR))); self.skipWaiting(); });
 self.addEventListener('activate', e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())
