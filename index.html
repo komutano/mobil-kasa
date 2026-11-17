@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Mobil Kasa v2.4.0</title>
+<title>Mobil Kasa v2.4.1</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-tap-highlight-color: transparent; padding-top: env(safe-area-inset-top); }
@@ -135,7 +135,7 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 <button class="nav-btn" id="btnTabUrunler" onclick="sekmeAc('urunler')">Ürünler</button>
 <button class="nav-btn" id="btnTabGunluk" onclick="sekmeAc('gunluk')">Günlük</button>
 <button class="nav-btn" id="btnTabStok" onclick="sekmeAc('stok')">Stok</button>
-<div class="version-badge" onclick="kisiSec(true)" title="Kişiyi değiştir"><span>v2.4.0</span><span class="kisi" id="lblKisi">—</span></div>
+<div class="version-badge" onclick="kisiSec(true)" title="Kişiyi değiştir"><span>v2.4.1</span><span class="kisi" id="lblKisi">—</span></div>
 </div>
 
 <!-- ================= 1. SATIŞ ================= -->
@@ -196,6 +196,8 @@ body { background-color: #f8fafc; color: #0f172a; padding-bottom: 30px; -webkit-
 style="flex:1; min-width:0; padding:14px; border:2px solid #0f172a; border-radius:10px; font-size:16px; font-weight:600; outline:none;">
 <button class="barcode-add-btn" onclick="kameraAc('urunler')" aria-label="Kamerayla barkod okut"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 9V5a2 2 0 0 1 2-2h4M23 3h4a2 2 0 0 1 2 2v4M29 23v4a2 2 0 0 1-2 2h-4M9 29H5a2 2 0 0 1-2-2v-4"/><path d="M9 10v12M13 10v12M16.5 10v12M20 10v12M23 10v12" stroke-width="2"/></svg></button>
 </div>
+<label id="sadeceStokEtiket" style="display:flex; align-items:center; gap:10px; margin:2px 2px 10px; font-size:15px; font-weight:700; color:#0f172a; cursor:pointer; user-select:none;">
+<input type="checkbox" id="sadeceStok" style="width:22px; height:22px; accent-color:#0f172a; margin:0;"> Sadece stokta olanlar</label>
 <div id="stokAramaSonuc" style="display:flex; flex-direction:column; gap:8px;"></div>
 </div>
 
@@ -286,7 +288,7 @@ A sütunu barkod, C ürün adı, K stok, L satış fiyatı. İlk satır başlık
 <div id="toast" class="toast-msg"></div>
 
 <script>
-const SURUM = 'v2.4.0';
+const SURUM = 'v2.4.1';
 let STOKLAR = {};
 let SATISLAR = [];          // Günlük sekmesinde görüntülenen günün fişleri
 let SEPET = [];
@@ -973,6 +975,12 @@ arama.addEventListener('focus', function () { tumunuSec(this); });
 arama.addEventListener('mouseup', function (e) { e.preventDefault(); });
 function tumunuSec(el) { setTimeout(() => { try { el.setSelectionRange(0, el.value.length); } catch (e) { el.select(); } }, 0); }
 
+// "Sadece stokta olanlar" tiki: varsayılan açık, telefon son seçimi hatırlar.
+// Açıkken listede stok 0 ve eksi stoklu ürünler gizlenir; barkodla tam eşleşen ürün yine de gösterilir.
+const sadeceStok = document.getElementById('sadeceStok');
+sadeceStok.checked = lsGet('pos_sadece_stok', true) !== false;
+sadeceStok.addEventListener('change', () => { lsSet('pos_sadece_stok', sadeceStok.checked); stokAra(); });
+
 function stokAra() {
     const q = arama.value.toLocaleLowerCase('tr-TR').trim();
     const dom = document.getElementById('stokAramaSonuc');
@@ -983,13 +991,17 @@ function stokAra() {
         html += `<div class="urun-buyuk"><div class="ad">${esc(tam.ad)}</div><div class="fiyat">${para(tam.fiyat)} ₺</div><div class="alt">${esc(tam.barkod)} · Stok: ${tam.stok}</div>
 <button onclick="sepeteEkle('${esc(tam.barkod)}'); sekmeAc('satis');" style="margin-top:10px; background:#fff; color:#0f172a; border:none; padding:9px 14px; border-radius:8px; font-weight:800; font-size:13px;">Sepete at</button></div>`;
     }
-    const sonuclar = [];
+    const sonuclar = [], filtre = sadeceStok.checked;
+    let gizli = 0;
     for (const k in STOKLAR) {
         const u = STOKLAR[k];
         if (tam && u === tam) continue;
-        if (u.barkod.includes(q) || u.ad.toLocaleLowerCase('tr-TR').includes(q)) { sonuclar.push(u); if (sonuclar.length >= 30) break; }
+        if (u.barkod.includes(q) || u.ad.toLocaleLowerCase('tr-TR').includes(q)) {
+            if (filtre && !(u.stok > 0)) { gizli++; continue; }
+            sonuclar.push(u); if (sonuclar.length >= 30) break;
+        }
     }
-    if (!tam && !sonuclar.length) html += '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:14px;">Eşleşen ürün bulunamadı.</div>';
+    if (!tam && !sonuclar.length) html += `<div style="padding:20px; text-align:center; color:#94a3b8; font-size:14px;">${gizli ? 'Stokta eşleşen ürün yok.' : 'Eşleşen ürün bulunamadı.'}</div>`;
     sonuclar.forEach(u => {
         const rozet = u.stok < 0 ? 'stock-badge stock-danger' : 'stock-badge stock-ok';
         html += `<div style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
@@ -998,6 +1010,7 @@ function stokAra() {
 <div style="display:flex; align-items:center; gap:8px;"><span style="font-weight:900; font-size:15px; color:#1e3a8a; white-space:nowrap;">${para(u.fiyat)} ₺</span>
 <button onclick="sepeteEkle('${esc(u.barkod)}'); sekmeAc('satis');" style="background:#0f172a; color:#fff; border:none; padding:8px 10px; border-radius:6px; font-weight:700; font-size:12px;">Sepete</button></div></div>`;
     });
+    if (gizli) html += `<div style="padding:8px; text-align:center; color:#94a3b8; font-size:13px;">Stokta olmayan ${gizli >= 30 ? 'birçok' : gizli} ürün gizlendi. Görmek için yukarıdaki tiki kaldırın.</div>`;
     dom.innerHTML = html;
 }
 
