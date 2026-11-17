@@ -6,7 +6,7 @@ Günün sonunda tüm satışlar fiş fiş Excel'e aktarılır ve ana programa gi
 
 **Adres:** https://komutano.github.io/mobil-kasa/
 
-Güncel sürüm: **v2.4.0**
+Güncel sürüm: **v2.4.1**
 
 ---
 
@@ -99,6 +99,7 @@ Program telefona bir kez yüklendikten sonra her şey **telefonun içinde** çal
 - Barkod okutun ya da **barkod simgeli** butonla kameradan okutun. Ürünün fiyatı ve stoğu büyük olarak gösterilir.
 - Bir sonraki barkod okutulduğunda eskisinin yerine yazılır, silmeye gerek yoktur.
 - Ürün adıyla da arama yapılabilir.
+- **Sadece stokta olanlar** tiki: işaretliyken stok 0 ve eksi stoklu ürünler listede gösterilmez. Tik varsayılan olarak işaretlidir; telefon son seçimi hatırlar. Barkodla okutulan ürün stokta olmasa da her zaman gösterilir. Gizlenen ürün sayısı listenin altında yazar; hepsini görmek için tiki kaldırın.
 
 ### Günlük
 - Günün nakit, kart, dövizle ödenen, indirim, iade ve döviz komisyon kârı toplamları ile fiş listesi.
@@ -160,6 +161,7 @@ Telefonlar internete bağlıyken bir sonraki açılışta yeni sürümü kendili
 
 ## Sürüm geçmişi
 
+- **v2.4.1:** Ürünler sekmesine "Sadece stokta olanlar" tiki eklendi (varsayılan açık, telefon hatırlar). Açıkken stok 0 ve eksi stoklu ürünler arama listesinde gizlenir; barkodla tam eşleşen ürün yine de gösterilir; kaç ürünün gizlendiği listenin altında yazar.
 - **v2.4.0:** Kamera ile okuma baştan yazıldı: iPhone'da çalışmayan eski okuyucu yerine ZXing-C++ tabanlı zxing-wasm kullanılıyor. Kamera yüksek çözünürlükte, sürekli odakla ve destekleniyorsa 2× yakınlaştırmayla açılır. Okununca bip sesi ve yeşil çerçeve. Yanlış okumaya karşı oylama: stok listesindeki barkod 2 karede aynı okununca, listede olmayan barkod en az 1 saniye ve 4 karede aynı okununca kabul edilir. Kamera butonu barkod simgeli ve açık renkli yapıldı.
 - **v2.3.2:** Dövizde müşterinin verdiği miktar girilir ve TL para üstü hesaplanır. Döviz işlemleri ve komisyon kârı fişte, Günlük ekranında ve Excel'de (yeni *Döviz* sayfası) ayrıca gösterilir. Barkod kutusunun yanına kamera ile okuma butonu eklendi.
 - **v2.3.1:** Fiyat sorguda yeni okutulan barkod eskisinin yerine yazılır (iPhone uyumu). Açılışta her zaman en yeni sürüm yüklenir.
